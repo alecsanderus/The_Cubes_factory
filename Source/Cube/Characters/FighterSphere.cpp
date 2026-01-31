@@ -36,7 +36,7 @@ AFighterSphere::AFighterSphere()
     BallVisMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     MyDamageManager = CreateDefaultSubobject<UDamageManager>(TEXT("DamageManager"));
-    MyDamageManager->DieFunct = std::bind(&AFighterSphere::Die, this);;
+    MyDamageManager->DieFunct = std::bind(&AFighterSphere::Die, this);
 
     DestoyeblComp = CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("DestoyeblComponent"));
     DestoyeblComp->SetupAttachment(RootComponent);
@@ -65,31 +65,44 @@ void AFighterSphere::BeginPlay()
 
 }
 
-void AFighterSphere::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-    Super::EndPlay(EndPlayReason);
-    GetWorld()->GetTimerManager().ClearTimer(FindPathTimer);
 
-}
-
-// Called every frame
 void AFighterSphere::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
     if (IsDie) return;
+
+    float CurrentTime = GetWorld()->GetTimeSeconds();
+
     MoveAlongPath(DeltaTime);
 
-    if (CanFindPath)
+    if (FindPathTimer <= CurrentTime)
     {
-        CanFindPath = 0;
-        GetWorld()->GetTimerManager().SetTimer(
-            FindPathTimer,
-            [this]() { CanFindPath = true; },
-            2.0f,
-            false
-        );
+        FindPathTimer = CurrentTime + 1.f;       
         MoveToLocation(PlayerPawn->GetActorLocation());
+
+
+
+
+        for (auto It = DamageCooldowns.CreateIterator(); It; ++It)
+        {
+           
+            if (!It.Key().IsValid())
+            {
+                It.RemoveCurrent();
+                continue;
+            }
+
+         
+            if (It.Value() < CurrentTime)
+            {
+                It.RemoveCurrent();
+            }
+        }
     }
+
+
+
+
     /*FVector InputDir(
         MovementVector.X,
         MovementVector.Y,
@@ -242,30 +255,15 @@ void AFighterSphere::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,
             if (DamageCooldowns.Contains(DamManager))
             {
                 float NextTime = DamageCooldowns[DamManager];
-                if (CurrentTime >= NextTime)
-                {
-                    DamageCooldowns.Add(DamManager, CurrentTime + 2.0f);
+                if (CurrentTime < NextTime)
+                {                   
+                    return;
                 }
             }
 
-         
-
+            DamManager->TakeDamage(Damage, DamageType);
            
-
-
-            if (std::find (damaged.begin(), damaged.end(), DamManager) == damaged.end())
-            {
-                FTimerHandle handle;
-                damaged.push_back (DamManager);               
-                GetWorld()->GetTimerManager().SetTimer(
-                    handle,
-                    [this]() {damaged.pop_front(); },
-                    2.0f, 
-                    false
-                );
-                DamManager->TakeDamage(10);    
-            }
-                 
+            DamageCooldowns.Add(DamManager, CurrentTime + DamageCooldown);
         }
 
     }

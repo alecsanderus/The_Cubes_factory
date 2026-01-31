@@ -11,6 +11,8 @@
 #include "DamageManager.h"
 #include "Bullet.h"
 #include "DebugMacros.h"
+#include "Cube/Factory/InteractComponent.h"
+
 
 
 // Sets default values
@@ -59,21 +61,7 @@ void APlayerChar::BeginPlay()
         HandligWeapon = GetWorld()->SpawnActor<AWeapon>(HandligWeaponType, WeaponLocation, WeaponRotation, Params);
         HandligWeapon->AttachToComponent(CameraComponent, FAttachmentTransformRules::KeepWorldTransform, "WeaponHand");
         HandligWeapon->SetMyOwner(GetController());
-    }   
-
-    DEBUG_CHECK("PlayerChar", "GameplayMappingContext", GameplayMappingContext)
-    {
-        if (APlayerController* PC = Cast<APlayerController>(GetController()))
-        {
-            if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-                ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-            {
-                Subsystem->AddMappingContext(GameplayMappingContext, 0);
-                UE_LOG(LogTemp, Warning, TEXT("Mapping Context added!"));
-
-            }
-        }
-    }
+    }           
 }
 
 // Called every frame
@@ -107,14 +95,46 @@ void APlayerChar::Look(const FInputActionValue& Value)
 void APlayerChar::StopShoot()
 {
     DEBUG_CHECK("PlayerChar", "HandligWeapon", HandligWeapon)
-        HandligWeapon->StopShoot();
+        HandligWeapon->StopAttak();
    
 }
 
 void APlayerChar::StartShoot()
 {
     DEBUG_CHECK("PlayerChar", "HandligWeapon", HandligWeapon)
-        HandligWeapon->StartShoot();
+        HandligWeapon->StartAttak();
+
+}
+
+void APlayerChar::TryInteract(float TraceDistance)
+{
+
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+
+    FVector Start = CameraComponent->GetComponentLocation();
+    FVector Forward = CameraComponent->GetForwardVector();
+
+     
+    FVector End = Start + Forward * TraceDistance;
+
+  
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);    
+
+    FHitResult Hit;
+
+    if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+    {
+        AActor* actr =  Hit.GetActor();
+
+        UInteractComponent* comp = actr->FindComponentByClass<UInteractComponent>();
+        if (comp)
+        {
+            comp->Interact(this);
+        }
+    }
 
 }
 
@@ -126,25 +146,6 @@ int APlayerChar::GetHealth()
 int APlayerChar::GetMaxHealth()
 {
     return 0; // MyDamageManager->MaxHealth;
-}
-
-
-void APlayerChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-
-
-    if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-    {
-        DEBUG_CHECK("PlayerChar", "LookAction", LookAction)
-            EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerChar::Look);
-        DEBUG_CHECK("PlayerChar", "MoveAction", MoveAction)
-            EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerChar::Move);
-        DEBUG_CHECK("PlayerChar", "ShootAction", ShootAction)
-        {
-            EnhancedInput->BindAction(ShootAction, ETriggerEvent::Started, this, &APlayerChar::StartShoot);
-            EnhancedInput->BindAction(ShootAction, ETriggerEvent::Completed, this, &APlayerChar::StopShoot);
-        }
-    }
 }
 
 

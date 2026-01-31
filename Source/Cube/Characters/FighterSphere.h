@@ -22,8 +22,7 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void BeginPlay() override;    
 
 public:	
 	// Called every frame
@@ -85,13 +84,13 @@ public:
 
 
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "0", UIMin = "0"))
     float RollForce = 50000.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "0", UIMin = "0"))
     float JumpDistance = 200.0f;    
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "0", UIMin = "0"))
     float JumpImpulse = 800.0f;
 
 
@@ -105,6 +104,17 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* LookAction;
 
+
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attak")
+    float Damage = 10;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attak", meta = (ClampMin = "0.0001", UIMin = "0.0001"))
+    float DamageCooldown = 2.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attak")
+    uint8 DamageType = 0;
 
 
 protected:

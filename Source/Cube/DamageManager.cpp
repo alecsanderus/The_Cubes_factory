@@ -6,26 +6,9 @@ UDamageManager::UDamageManager()
 {
     PrimaryComponentTick.bCanEverTick = false;
 
-
-    // Создаём HitBox как дочерний компонент актора-владельца
-   // HitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("DamageHitBox"));
-    //HitBox->SetupAttachment(this);
-   // if (HitBox)
-   // {
-        // Убедимся, что компонент корректно инициализирован, и только тогда добавляем привязку
-       // HitBox->OnComponentBeginOverlap.AddDynamic(this, &UDamageManager::OnHitBoxOverlap);
-      
-
-        // Настройки коллизии
-     //   HitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-     //   HitBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
-     //   HitBox->SetGenerateOverlapEvents(true);
-   // }
-        
-    
 }
 
-void UDamageManager::TakeDamage(float Damage)
+void UDamageManager::TakeDamage(float Damage, uint8 type)
 {   
     TecHealth -= Damage;
     if (TecHealth <= 0)
@@ -51,5 +34,10 @@ int UDamageManager::GetMaxHealth()
 int UDamageManager::GetTeamID()
 {
     return TeamID;
+}
+
+void UDamageManager::SetDieFunction(std::function<void()> NewDieFunct)
+{
+    DieFunct = NewDieFunct;
 }
 

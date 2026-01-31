@@ -14,7 +14,7 @@ class CUBE_API UDamageManager : public UActorComponent
 
 public:
     UDamageManager();
-    void TakeDamage (float Damage);
+    void TakeDamage (float Damage, uint8 type = 0);
 
     UFUNCTION(BlueprintCallable)
     int GetHealth();
@@ -24,6 +24,8 @@ public:
 
     UFUNCTION(BlueprintCallable)
     int GetTeamID();
+
+    void SetDieFunction(std::function<void()> NewDieFunct);
 
     UPROPERTY(EditAnywhere)
     int TeamID = 0;

@@ -122,13 +122,13 @@ void AEnemy::LosePlayer()
 {
 	if (!PlayerActor)
 		return;
-	HandligWeapon->SetShooting(false);
+	HandligWeapon->SetAttaking(false);
 	MyAIControoler->MoveToLocation(PlayerActor->GetActorLocation());
 }
 
 void AEnemy::FindPlayer()
 {
-	HandligWeapon->SetShooting(true);
+	HandligWeapon->SetAttaking(true);
 	LastKnownLocation = PlayerActor->GetActorLocation();
 	
 }
