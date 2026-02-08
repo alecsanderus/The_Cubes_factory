@@ -1,27 +1,47 @@
 #include "InventoryManager.h"
 
 
-void UInventoryManager::AddItem (const FInventoryItem& NewItem, int Position = -1)
+UInventoryManager::UInventoryManager()
+{
+	if (AutoExpanding)
+	{
+		SetNum(GridSize);
+	}
+		
+}
+
+bool UInventoryManager::AddItem(const FInventoryItem& NewItem, int Position, bool stack)
 {
 	int size = ItemsArray.Num();
-	if (NewItem.Object == nullptr) return;
+	if (!NewItem.Object) return 0;
 
 	if (Position != -1)
 	{
-		if (Position + GridSize >= size)
-			ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
+		if (AutoExpanding)
+		{
+			if (Position + GridSize >= size)
+				ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
+		}
+		else
+		{
+			if (Position >= size)
+				return 0;
+		}
 		ItemsArray[Position] = NewItem;
 	}
 	else
 	{
 		bool IsPlaced = 0;		
-		for (auto& i : ItemsArray)
+		if (stack)
 		{
-			if (i.Object == NewItem.Object)
+			for (auto& i : ItemsArray)
 			{
-				i.Count += NewItem.Count;
-				IsPlaced = 1;
-				break;
+				if (i.Object == NewItem.Object)
+				{
+					i.Count += NewItem.Count;
+					IsPlaced = 1;
+					break;
+				}
 			}
 		}
 		if (!IsPlaced)
@@ -39,31 +59,39 @@ void UInventoryManager::AddItem (const FInventoryItem& NewItem, int Position = -
 				++counter;
 			}
 		}
-
-		if (!IsPlaced)
+		if (AutoExpanding)
 		{
-			if (size + GridSize >= size)
-				ItemsArray.SetNum(((int)((size / GridSize) + 2)) * GridSize);
-			ItemsArray[size] = NewItem;
+			if (!IsPlaced)
+			{
+				if (size + GridSize >= size)
+					ItemsArray.SetNum(((int)((size / GridSize) + 2)) * GridSize);
+				ItemsArray[size] = NewItem;
+			}
+			else
+				if (Position + GridSize >= size)
+					ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
 		}
-		else
-		if (Position + GridSize >= size)
-			ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
+		if (!IsPlaced) return 0;
 		
 	}
-	size = ItemsArray.Num();
-	int NewSiz = 0;
-	for (int i = size - 1; i > 0; --i)
+	if (AutoExpanding)
 	{
-		if (ItemsArray[i].Count != -1)
+		size = ItemsArray.Num();
+		int NewSiz = 0;
+		for (int i = size - 1; i > 0; --i)
 		{
-			NewSiz = i;
-			break;
+			if (ItemsArray[i].Count != -1)
+			{
+				NewSiz = i;
+				break;
+			}
 		}
+		if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
+			ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
 	}
-	if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
-		ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
 	OnItemsChanged.Broadcast();
+
+	return 1;
 }
 
 void UInventoryManager::RemoveItem(int Position)
@@ -84,6 +112,36 @@ void UInventoryManager::RemoveItem(int Position)
 		ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
 	OnItemsChanged.Broadcast();
 }
+
+void UInventoryManager::SetNum(int Size)
+{
+	ItemsArray.SetNum(Size);
+}
+
+FInventoryItem UInventoryManager::GetItem(int Index)
+{
+	if (Index >= ItemsArray.Num())
+		return FInventoryItem();
+	return ItemsArray[Index];
+
+}
+
+TArray<int> UInventoryManager::GetItems(UItemInfo* Object)
+{
+	TArray<int> FoundItems;
+	int counter = 0;
+	for (auto& i : ItemsArray)
+	{
+		if (i.Object == Object)
+		{
+			FoundItems.Push(counter);			
+		}
+		++counter;
+	}
+
+	return FoundItems;
+}
+
 
 //void UInventoryManager::SwapItems(uint16 PositionA, uint16 PositionB)
 //{

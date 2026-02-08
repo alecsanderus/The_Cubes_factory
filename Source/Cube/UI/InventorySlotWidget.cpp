@@ -23,10 +23,10 @@ void UInventorySlotWidget::SetItem(UItemInfo* ItemInfo, int Count)
     else
         ItemCountText->SetVisibility(ESlateVisibility::Hidden);
        
-    if (ItemInfo->Texture)
+    if (ItemInfo->Icon)
     {
         FSlateBrush Brush;
-        Brush.SetResourceObject(ItemInfo->Texture);
+        Brush.SetResourceObject(ItemInfo->Icon);
         ItemImage->SetBrush(Brush);      
     }
    

@@ -2,26 +2,77 @@
 
 
 #include "PlayersTool.h"
+#include "Cube/HumanController.h"
+#include "InventoryManager.h"
 
-// Sets default values
 APlayersTool::APlayersTool()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	MainComp = CreateDefaultSubobject <USceneComponent>(TEXT("MainComp"));
+	RootComponent = MainComp;
 }
 
-// Called when the game starts or when spawned
 void APlayersTool::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
 void APlayersTool::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+
+
+void APlayersTool::SetHandMode(EHandMode NewMode)
+{
+	if (TecHandMode == NewMode) return;
+
+	TecHandMode = NewMode;
+	
+
+	switch (TecHandMode)
+	{
+	case Nothing:
+		DoNothing();
+
+		break;
+	case HandlingWeapon:
+		ChangeWeapon();
+
+		break;
+	case Building:
+
+
+		break;
+	case Destroying:
+
+
+
+		break;
+	default:
+		break;
+	}
+}
+
+void APlayersTool::DoNothing()
+{
+	if (ObjectOnHand)ObjectOnHand->Destroy();
+}
+
+void APlayersTool::ChangeWeapon()
+{
+	DoNothing();
+	auto weapon = PlayerController->PlayerEquipmentInventory->GetItem(EItemsInInventoryID::weapon);
+	if (weapon.Count < 1) return;
+
+	
+}
+
+void APlayersTool::SetController(AHumanController* NewController)
+{
+	PlayerController = NewController;
 }
 

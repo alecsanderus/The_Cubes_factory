@@ -34,14 +34,29 @@ protected:
     uint8 GridSize = 13;
 public:
 
+    UInventoryManager();
+
+
+
+    UPROPERTY(EditAnywhere)
+    bool AutoExpanding = 1;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray <FInventoryItem> ItemsArray;
 	
     UFUNCTION(BlueprintCallable)
-    void AddItem(const FInventoryItem& NewItem, int Position);
+    bool AddItem(const FInventoryItem& NewItem, int Position = -1, bool stack = true);
 
     UFUNCTION(BlueprintCallable)
     void RemoveItem(int Position);
+
+    UFUNCTION(BlueprintCallable)
+    void SetNum(int Size);
+
+
+
+    FInventoryItem GetItem(int Index);
+    TArray <int> GetItems(UItemInfo* Object);
 
     UPROPERTY(BlueprintAssignable)
     FOnItemsChanged OnItemsChanged;

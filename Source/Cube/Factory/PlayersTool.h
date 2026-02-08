@@ -6,21 +6,44 @@
 #include "GameFramework/Actor.h"
 #include "PlayersTool.generated.h"
 
+class AHumanController;
+
+
+UENUM()
+enum EHandMode
+{
+	Nothing,
+	HandlingWeapon,
+	Building,
+	Destroying	
+};
+
+
 UCLASS()
 class CUBE_API APlayersTool : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	APlayersTool();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	AHumanController* PlayerController;
 
 public:	
-	// Called every frame
+	UPROPERTY()
+	USceneComponent* MainComp;
+
 	virtual void Tick(float DeltaTime) override;
 
+	void SetHandMode(EHandMode NewMode);
+
+	void DoNothing();
+	void ChangeWeapon();
+	void SetController(AHumanController* NewController);
+
+	AActor* ObjectOnHand;
+
+	EHandMode TecHandMode = EHandMode::HandlingWeapon;
 };

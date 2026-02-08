@@ -6,6 +6,20 @@
 #include "Engine/DataAsset.h"
 #include "ItemInfo.generated.h"
 
+UENUM()
+enum class EItemType : uint8
+{
+	nothing,
+	resource,
+	equipment,
+	weapon
+};
+
+
+
+
+
+
 
 UCLASS()
 class CUBE_API UItemInfo : public UDataAsset
@@ -16,15 +30,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	FString Name = "Nou Name Kakoy-to";
 
-
 	UPROPERTY(EditAnywhere)
-	FString Deskription = "Umniy Chelovec";
-
+	EItemType Type = EItemType::nothing;
+	
 	UPROPERTY(EditAnywhere)
 	UStaticMesh* Mesh;
 
 	UPROPERTY(EditAnywhere)
-	UTexture2D* Texture;
+	UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere)
 	int Weight = 1;
@@ -32,4 +45,8 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf <UObject> Object;
+
+
+	UPROPERTY(EditAnywhere)
+	FString Deskription = "Umniy Chelovec";
 };
