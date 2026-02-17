@@ -12,7 +12,7 @@
 
 class AWeapon;
 class UDamageManager;
-
+class UPlayersTool;
 
 UCLASS()
 class CUBE_API APlayerChar : public ACharacter
@@ -72,13 +72,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float SprintSpeed = 1200.f;
 	
-		
-	
-
-	UPROPERTY(EditAnywhere, Category = "Fight")
-	TSubclassOf <AWeapon> HandligWeaponType;
-	AWeapon* HandligWeapon;
-	
+	UPROPERTY(EditAnywhere)
+	UPlayersTool* PlayerTool;
 	
 	UPROPERTY (VisibleAnywhere, BlueprintReadOnly, Category = "Fight")
 	UDamageManager* MyDamageManager;

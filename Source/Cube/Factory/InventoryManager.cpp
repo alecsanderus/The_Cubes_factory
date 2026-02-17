@@ -10,7 +10,7 @@ UInventoryManager::UInventoryManager()
 		
 }
 
-bool UInventoryManager::AddItem(const FInventoryItem& NewItem, int Position, bool stack)
+bool UInventoryManager::AddItem(const FInventoryItem& NewItem, int Position, bool stack, bool Hide)
 {
 	int size = ItemsArray.Num();
 	if (!NewItem.Object) return 0;
@@ -89,12 +89,13 @@ bool UInventoryManager::AddItem(const FInventoryItem& NewItem, int Position, boo
 		if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
 			ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
 	}
-	OnItemsChanged.Broadcast();
+	if (!Hide)
+		OnItemsChanged.Broadcast();
 
 	return 1;
 }
 
-void UInventoryManager::RemoveItem(int Position)
+void UInventoryManager::RemoveItem(int Position, bool Hide)
 {
 	int size = ItemsArray.Num();
 	if (Position >= size) return;
@@ -110,12 +111,19 @@ void UInventoryManager::RemoveItem(int Position)
 	}
 	if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
 		ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
-	OnItemsChanged.Broadcast();
+
+	if (!Hide)
+		OnItemsChanged.Broadcast();
 }
 
 void UInventoryManager::SetNum(int Size)
 {
 	ItemsArray.SetNum(Size);
+}
+
+void UInventoryManager::CheckInventory()
+{
+	OnItemsChanged.Broadcast();
 }
 
 FInventoryItem UInventoryManager::GetItem(int Index)

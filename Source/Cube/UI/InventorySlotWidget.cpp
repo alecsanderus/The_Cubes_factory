@@ -96,10 +96,13 @@ bool UInventorySlotWidget::NativeOnDrop(
     
     FInventoryItem ItemA = InventoryManager->ItemsArray[SlotIndex], ItemB = DragOp->SourseInventory->ItemsArray[DragOp->SourceIndex];
     
-    InventoryManager->RemoveItem(SlotIndex);
-    DragOp->SourseInventory->RemoveItem(DragOp->SourceIndex);
-    InventoryManager->AddItem(ItemB, SlotIndex);
-    DragOp->SourseInventory->AddItem(ItemA, DragOp->SourceIndex);
+    InventoryManager->RemoveItem(SlotIndex,1);
+    DragOp->SourseInventory->RemoveItem(DragOp->SourceIndex,1);
+    InventoryManager->AddItem(ItemB, SlotIndex,1,1);
+    DragOp->SourseInventory->AddItem(ItemA, DragOp->SourceIndex,1,1);
+
+    InventoryManager->CheckInventory();
+    DragOp->SourseInventory->CheckInventory();
 
  //   if (UInventoryWidget && (From != To))
   //  {

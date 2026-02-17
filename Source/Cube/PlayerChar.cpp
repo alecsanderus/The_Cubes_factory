@@ -12,22 +12,19 @@
 #include "Bullet.h"
 #include "DebugMacros.h"
 #include "Cube/Factory/InteractComponent.h"
+#include "Cube/Factory/PlayersTool.h"
 
 
 
-// Sets default values
 APlayerChar::APlayerChar()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     
     
-    // ќтключаем автоматический поворот тела персонажа за камерой
     bUseControllerRotationYaw = true;
-    bUseControllerRotationPitch = true;
+    bUseControllerRotationPitch = false;
     bUseControllerRotationRoll = false;
 
-    // ѕерсонаж не поворачиваетс€ сам Ч камера управл€ет всем
     GetCharacterMovement()->bOrientRotationToMovement = false;
 
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -40,7 +37,11 @@ APlayerChar::APlayerChar()
     
     MainMesh = GetMesh();
      
-  
+    PlayerTool = CreateDefaultSubobject <UPlayersTool>(TEXT("CubeTool"));
+    PlayerTool->SetupAttachment(CameraComponent);
+   
+   
+
     MyDamageManager = CreateDefaultSubobject<UDamageManager>(TEXT("DamageManager"));    
               
   
@@ -50,18 +51,31 @@ APlayerChar::APlayerChar()
 void APlayerChar::BeginPlay()
 {
     Super::BeginPlay();
+    PlayerTool->SetWorldTransform(MainMesh->GetSocketTransform("WeaponHand"));
+    if (auto* contr = Cast <AHumanController>(GetController()))
+        PlayerTool->SetController(contr);
 
-    DEBUG_CHECK("PlayerChar", "HandligWeaponType", HandligWeaponType)
-    {
-        FVector WeaponLocation = MainMesh->GetSocketLocation("WeaponHand");
-        FRotator WeaponRotation = MainMesh->GetSocketRotation("WeaponHand");
 
-        FActorSpawnParameters Params;
-        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        HandligWeapon = GetWorld()->SpawnActor<AWeapon>(HandligWeaponType, WeaponLocation, WeaponRotation, Params);
-        HandligWeapon->AttachToComponent(CameraComponent, FAttachmentTransformRules::KeepWorldTransform, "WeaponHand");
-        HandligWeapon->SetMyOwner(GetController());
-    }           
+    PlayerTool->SetHandMode(EHandMode::HandlingWeapon);
+
+
+    
+
+
+
+    PlayerTool->CheckItems();
+    //DEBUG_CHECK("PlayerChar", "HandligWeaponType", HandligWeaponType)
+    //{
+    //    FVector WeaponLocation = MainMesh->GetSocketLocation("WeaponHand");
+    //    FRotator WeaponRotation = MainMesh->GetSocketRotation("WeaponHand");
+
+    //    FActorSpawnParameters Params;
+    //    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    //    HandligWeapon = GetWorld()->SpawnActor<AWeapon>(HandligWeaponType, WeaponLocation, WeaponRotation, Params);
+    //    HandligWeapon->AttachToComponent(CameraComponent, FAttachmentTransformRules::KeepWorldTransform, "WeaponHand");
+    //    HandligWeapon->SetMyOwner(GetController());
+    //}      
+
 }
 
 // Called every frame
@@ -94,16 +108,12 @@ void APlayerChar::Look(const FInputActionValue& Value)
 
 void APlayerChar::StopShoot()
 {
-    DEBUG_CHECK("PlayerChar", "HandligWeapon", HandligWeapon)
-        HandligWeapon->StopAttak();
-   
+    PlayerTool->Weapon_StopAttak();
 }
 
 void APlayerChar::StartShoot()
 {
-    DEBUG_CHECK("PlayerChar", "HandligWeapon", HandligWeapon)
-        HandligWeapon->StartAttak();
-
+    PlayerTool->Weapon_StartAttak();
 }
 
 void APlayerChar::TryInteract(float TraceDistance)

@@ -4,75 +4,118 @@
 #include "PlayersTool.h"
 #include "Cube/HumanController.h"
 #include "InventoryManager.h"
+#include "Cube/Weapons/Weapon.h"
 
-APlayersTool::APlayersTool()
+UPlayersTool::UPlayersTool()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	MainComp = CreateDefaultSubobject <USceneComponent>(TEXT("MainComp"));
-	RootComponent = MainComp;
+	
+	
 }
 
-void APlayersTool::BeginPlay()
+void UPlayersTool::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void APlayersTool::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-}
-
-
-
-void APlayersTool::SetHandMode(EHandMode NewMode)
+void UPlayersTool::SetHandMode(EHandMode NewMode)
 {
 	if (TecHandMode == NewMode) return;
 
 	TecHandMode = NewMode;
+	CheckItems();
+
 	
-
-	switch (TecHandMode)
-	{
-	case Nothing:
-		DoNothing();
-
-		break;
-	case HandlingWeapon:
-		ChangeWeapon();
-
-		break;
-	case Building:
-
-
-		break;
-	case Destroying:
-
-
-
-		break;
-	default:
-		break;
-	}
 }
 
-void APlayersTool::DoNothing()
+void UPlayersTool::DoNothing()
 {
 	if (ObjectOnHand)ObjectOnHand->Destroy();
 }
 
-void APlayersTool::ChangeWeapon()
+void UPlayersTool::ChangeWeapon()
 {
 	DoNothing();
 	auto weapon = PlayerController->PlayerEquipmentInventory->GetItem(EItemsInInventoryID::weapon);
-	if (weapon.Count < 1) return;
+	if (weapon.Count < 1 ||(! weapon.Object)) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	if (weapon.Object->Type == EItemType::weapon && weapon.Object->Object && weapon.Object->Object->IsChildOf<AActor>())
+	{
+		FTransform SpawnTransform = GetComponentTransform();
+
+		ObjectOnHand = World->SpawnActor<AWeapon>(weapon.Object->Object, SpawnTransform);
+
+		ObjectOnHand->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
+
+		if (auto* weap = Cast <AWeapon>(ObjectOnHand))
+		{
+			WeaponOnHand = weap;
+			WeaponOnHand->SetMyOwner(PlayerController);
+		}
+	}
+
+	
 
 	
 }
 
-void APlayersTool::SetController(AHumanController* NewController)
+void UPlayersTool::SetController(AHumanController* NewController)
 {
 	PlayerController = NewController;
+	PlayerController->PlayerEquipmentInventory->OnItemsChanged.AddDynamic(this, &UPlayersTool::CheckItems);
+}
+
+void UPlayersTool::CheckItems()
+{
+switch (TecHandMode)
+{
+case Nothing:
+	DoNothing();
+
+	break;
+case HandlingWeapon:
+	ChangeWeapon();
+
+	break;
+case Building:
+
+
+	break;
+case Destroying:
+
+
+
+	break;
+default:
+	break;
+}
+}
+
+void UPlayersTool::Weapon_StopAttak()
+{
+	if (WeaponOnHand)
+		WeaponOnHand->StopAttak();
+}
+
+void UPlayersTool::Weapon_StartAttak()
+{
+	if (WeaponOnHand)
+		WeaponOnHand->StartAttak();
+}
+
+void UPlayersTool::Weapon_SetAttaking(bool Value)
+{
+	if (WeaponOnHand)
+		WeaponOnHand->SetAttaking(Value);
+}
+
+void UPlayersTool::Weapon_Attak()
+{
+	if (WeaponOnHand)
+		WeaponOnHand->Attak();
 }
 
