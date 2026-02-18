@@ -13,8 +13,7 @@
 #include "DebugMacros.h"
 #include "Cube/Factory/InteractComponent.h"
 #include "Cube/Factory/PlayersTool.h"
-
-
+#include "LlamaComponent.h"
 
 APlayerChar::APlayerChar()
 {
@@ -44,7 +43,7 @@ APlayerChar::APlayerChar()
 
     MyDamageManager = CreateDefaultSubobject<UDamageManager>(TEXT("DamageManager"));    
               
-  
+    LamaComp = CreateDefaultSubobject <ULlamaComponent>(TEXT("Lama"));
 }
 
 // Called when the game starts or when spawned
@@ -76,6 +75,12 @@ void APlayerChar::BeginPlay()
     //    HandligWeapon->SetMyOwner(GetController());
     //}      
 
+    FString ModelPath = FPaths::ProjectContentDir() + TEXT("model/model.gguf");
+    LamaComp->ModelParams.PathToModel = ModelPath;
+
+    LamaComp->LoadModel();
+    LamaComp->OnModelLoaded.AddDynamic(this, &APlayerChar::Generate);
+    LamaComp->OnResponseGenerated.AddDynamic(this, &APlayerChar::Answer);
 }
 
 // Called every frame
@@ -118,6 +123,8 @@ void APlayerChar::StartShoot()
 
 void APlayerChar::TryInteract(float TraceDistance)
 {
+   
+      
 
     UWorld* World = GetWorld();
     if (!World) return;
@@ -156,6 +163,34 @@ int APlayerChar::GetHealth()
 int APlayerChar::GetMaxHealth()
 {
     return 0; // MyDamageManager->MaxHealth;
+}
+
+void APlayerChar::Generate(const FString& Response)
+{
+    LamaComp->InsertTemplatedPrompt("в чём смылс красного кирпича", EChatTemplateRole::User, true);
+
+    
+
+
+    return;
+}
+
+void APlayerChar::Answer(const FString& Response)
+{
+
+
+    UE_LOG(LogTemp, Error, TEXT("%s"), *Response);
+
+    // Проверка на валидность движка
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(
+            -1,              // новый ключ каждый раз
+            15.0f,           // 10 секунд
+            FColor::Green,   // цвет
+            Response         // FString можно передавать напрямую
+        );
+    }
 }
 
 

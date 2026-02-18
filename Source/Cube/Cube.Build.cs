@@ -17,7 +17,8 @@ public class Cube : ModuleRules
             "NavigationSystem",
             "UMG",
             "AIModule",
-            "GeometryCollectionEngine"
+            "GeometryCollectionEngine",
+            "LlamaCore"
 
         });
 

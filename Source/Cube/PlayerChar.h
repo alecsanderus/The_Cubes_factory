@@ -13,6 +13,7 @@
 class AWeapon;
 class UDamageManager;
 class UPlayersTool;
+class ULlamaComponent;
 
 UCLASS()
 class CUBE_API APlayerChar : public ACharacter
@@ -58,7 +59,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetMaxHealth();
 
+	UFUNCTION(BlueprintCallable)
+	void Generate(const FString& Response);
 
+	UFUNCTION(BlueprintCallable)
+	void Answer(const FString& Response);
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class UCameraComponent* CameraComponent;
@@ -77,5 +82,8 @@ public:
 	
 	UPROPERTY (VisibleAnywhere, BlueprintReadOnly, Category = "Fight")
 	UDamageManager* MyDamageManager;
+
+	UPROPERTY(EditAnywhere)
+	ULlamaComponent* LamaComp;
 
 };
