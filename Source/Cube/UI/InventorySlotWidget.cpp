@@ -9,6 +9,9 @@
 #include "IntemDragDropOperation.h"
 #include "Cube/Factory/InventoryManager.h"
 #include "InventoryWidget.h"
+#include "ItemTooltip.h"
+#include "Cube/DebugMacros.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 void UInventorySlotWidget::SetItem(UItemInfo* ItemInfo, int Count)
 {
@@ -29,6 +32,11 @@ void UInventorySlotWidget::SetItem(UItemInfo* ItemInfo, int Count)
         Brush.SetResourceObject(ItemInfo->Icon);
         ItemImage->SetBrush(Brush);      
     }
+
+    if (!IsTooltipOn)
+    {
+       // onhovered
+    }
    
 }
 
@@ -46,8 +54,61 @@ void UInventorySlotWidget::SetConfig(TSubclassOf < UInventorySlotWidget> MyBlupr
     MyClass = MyBluprintClass;
 }
 
+void UInventorySlotWidget::ShowTooltip()
+{
+    IsTooltipOn = 1;
+    if (ActiveTooltip) return;
+    if (!MyInfo) return;
+    DEBUG_CHECK_RETURN("UInventorySlotWidget", "TooltipClass", TooltipClass);
+
+    ActiveTooltip = CreateWidget <UItemTooltip>(this, TooltipClass);
+    ActiveTooltip->AddToViewport();
+
+    FVector2D MousePos;
+    if (GetWorld()->GetFirstPlayerController()->GetMousePosition(MousePos.X, MousePos.Y))
+    {
+        ActiveTooltip->SetPositionInViewport(MousePos + FVector2D (50,0), true);
+    }
+    ActiveTooltip->SetItem(MyInfo);
+}
+
+void UInventorySlotWidget::HideTooltip()
+{
+    IsTooltipOn = 0;
+    if (ActiveTooltip)
+    {
+        ActiveTooltip->RemoveFromParent();
+        ActiveTooltip = nullptr;
+    }
+}
+
+
+void UInventorySlotWidget::NativeDestruct()
+{
+    if (ActiveTooltip && IsValid (ActiveTooltip))
+    {
+        ActiveTooltip->RemoveFromParent();
+        ActiveTooltip = nullptr;
+    }
+}
+
+void UInventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+    Super::NativeTick(MyGeometry, InDeltaTime);
+    if (!IsOverlap) return;
+    if (IsTooltipOn) return;
+    TooltipDelayTimer += InDeltaTime;
+    if (TooltipDelayTimer >= TooltipDelay)
+    {
+        IsTooltipOn = 1;
+        ShowTooltip();
+        TooltipDelayTimer = 0;
+    }
+}
+
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+    Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
     UE_LOG(LogTemp, Error, TEXT("MouseDown"));
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
@@ -61,6 +122,7 @@ void UInventorySlotWidget::NativeOnDragDetected(
     const FPointerEvent& InMouseEvent,
     UDragDropOperation*& OutOperation)
 {
+    Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
     UE_LOG(LogTemp, Error, TEXT("DragDetected"));
     UIntemDragDropOperation* DragOp = NewObject<UIntemDragDropOperation>();
     DragOp->SourceIndex = SlotIndex;
@@ -85,7 +147,8 @@ bool UInventorySlotWidget::NativeOnDrop(
     const FDragDropEvent& InDragDropEvent,
     UDragDropOperation* InOperation)
 {
-    
+    Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+
     UIntemDragDropOperation* DragOp = Cast<UIntemDragDropOperation>(InOperation);
     if (!DragOp) return false;
 
@@ -113,4 +176,32 @@ bool UInventorySlotWidget::NativeOnDrop(
  //   }
 
     return true;
+}
+
+void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+    IsOverlap = 1;
+    TooltipDelayTimer = 0;
+}
+
+void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseLeave(InMouseEvent);
+    IsOverlap = 0;
+    HideTooltip();
+    TooltipDelayTimer = 0;
+}
+
+
+FVector2D UInventorySlotWidget::GetWidgetScreenPosition() const
+{
+    // Получаем абсолютную позицию виджета в экранных координатах (в "пикселях Slate")
+    FVector2D AbsolutePos = GetCachedGeometry().GetAbsolutePosition();
+
+    // Получаем размер виджета
+    FVector2D WidgetSize = GetCachedGeometry().GetLocalSize();
+
+    // Рассчитываем позицию верхнего правого угла
+    return AbsolutePos + FVector2D(WidgetSize.X, 0.f);
 }

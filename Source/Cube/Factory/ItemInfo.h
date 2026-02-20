@@ -48,5 +48,5 @@ public:
 
 
 	UPROPERTY(EditAnywhere)
-	FString Deskription = "Umniy Chelovec";
+	FString Description = "Umniy Chelovec";
 };
