@@ -33,10 +33,6 @@ void UInventorySlotWidget::SetItem(UItemInfo* ItemInfo, int Count)
         ItemImage->SetBrush(Brush);      
     }
 
-    if (!IsTooltipOn)
-    {
-       // onhovered
-    }
    
 }
 
