@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Cube/Weapons/Hands.h"
+#include "Cube/Fight/Weapons/Hands.h"
 #include "Cube/DebugMacros.h"
 AHands::AHands()
 {    

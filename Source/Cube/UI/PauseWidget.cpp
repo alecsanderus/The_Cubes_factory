@@ -2,7 +2,7 @@
 
 
 #include "PauseWidget.h"
-#include "Cube/HumanController.h"
+#include "Cube/Player/HumanController.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 

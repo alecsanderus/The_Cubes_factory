@@ -1,10 +1,10 @@
 
 
 #include "CollectibleItem.h"
-#include "InteractComponent.h"
-#include "Cube/PlayerChar.h"
-#include "Cube/HumanController.h"
-#include "Cube/Factory/InventoryManager.h"
+#include "Cube/Factory/InteractComponent.h"
+#include "Cube/Player/PlayerChar.h"
+#include "Cube/Player/HumanController.h"
+#include "Cube/Factory/Items/InventoryManager.h"
 
 ACollectibleItem::ACollectibleItem()
 {

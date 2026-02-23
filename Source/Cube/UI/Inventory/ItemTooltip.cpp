@@ -1,5 +1,5 @@
 #include "ItemTooltip.h"
-#include "Cube/Factory/ItemInfo.h"
+#include "Cube/Factory/Items/ItemInfo.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 

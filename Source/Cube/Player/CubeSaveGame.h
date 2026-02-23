@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "Cube/Factory/InventoryManager.h"
+#include "Cube/Factory/Items/InventoryManager.h"
 #include "CubeSaveGame.generated.h"
 
 /**

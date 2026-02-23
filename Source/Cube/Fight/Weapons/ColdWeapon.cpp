@@ -3,7 +3,7 @@
 
 #include "ColdWeapon.h"
 #include "Components/SplineComponent.h"
-#include "Cube/DamageManager.h"
+#include "Cube/Fight/DamageManager.h"
 #include "GameFramework/Character.h"
 #include "Components/StaticMeshComponent.h"
 

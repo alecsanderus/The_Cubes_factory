@@ -1,5 +1,5 @@
 #include "InventoryWidget.h"
-#include "Cube/Factory/InventoryManager.h"
+#include "Cube/Factory/Items/InventoryManager.h"
 #include "Cube/DebugMacros.h"
 #include "InventorySlotWidget.h"
 #include "Components/GridPanel.h"

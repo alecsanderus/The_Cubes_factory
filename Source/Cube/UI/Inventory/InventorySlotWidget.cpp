@@ -2,12 +2,12 @@
 
 
 #include "InventorySlotWidget.h"
-#include "Cube/Factory/ItemInfo.h"
+#include "Cube/Factory/Items/ItemInfo.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Blueprint/DragDropOperation.h"
 #include "IntemDragDropOperation.h"
-#include "Cube/Factory/InventoryManager.h"
+#include "Cube/Factory/Items/InventoryManager.h"
 #include "InventoryWidget.h"
 #include "ItemTooltip.h"
 #include "Cube/DebugMacros.h"

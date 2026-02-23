@@ -4,8 +4,8 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "AIController.h"
-#include "Cube/Weapons/Weapon.h"
-#include "Cube/DamageManager.h"
+#include "Cube/Fight/Weapons/Weapon.h"
+#include "Cube/Fight/DamageManager.h"
 
 
 

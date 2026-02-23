@@ -3,8 +3,8 @@
 
 #include "InventoryCharWidget.h"
 #include "Cube/DebugMacros.h"
-#include "Cube/Factory/InventoryManager.h"
-#include "Cube/HumanController.h"
+#include "Cube/Factory/Items/InventoryManager.h"
+#include "Cube/Player/HumanController.h"
 
 
 void UInventoryCharWidget::NativeConstruct()

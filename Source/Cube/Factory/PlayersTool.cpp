@@ -2,9 +2,9 @@
 
 
 #include "PlayersTool.h"
-#include "Cube/HumanController.h"
-#include "InventoryManager.h"
-#include "Cube/Weapons/Weapon.h"
+#include "Cube/Player/HumanController.h"
+#include "Cube/Factory/Items/InventoryManager.h"
+#include "Cube/Fight/Weapons/Weapon.h"
 
 UPlayersTool::UPlayersTool()
 {

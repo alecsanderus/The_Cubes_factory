@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Cube/DamageManager.h"
+#include "Cube/Fight/DamageManager.h"
 #include "Weapon.generated.h"
 
 class ABullet;

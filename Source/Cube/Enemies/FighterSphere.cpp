@@ -7,7 +7,7 @@
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "Kismet/GameplayStatics.h"
-#include "Cube/DamageManager.h"
+#include "Cube/Fight/DamageManager.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Chaos/ChaosGameplayEventDispatcher.h"
 #include "Physics/PhysicsInterfaceCore.h"

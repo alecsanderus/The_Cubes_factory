@@ -4,7 +4,7 @@
 #include "Bullet.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
-#include "Cube/DamageManager.h"
+#include "Cube/Fight/DamageManager.h"
 
 
 // Sets default values
