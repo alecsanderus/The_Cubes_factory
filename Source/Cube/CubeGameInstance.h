@@ -14,6 +14,10 @@ class CUBE_API UCubeGameInstance : public UGameInstance
 	GENERATED_BODY()
 public:
 
+
+	UPROPERTY()
+	TSet <FString> UnlockedTecnology;
+
 	UPROPERTY()
 	UInventoryManager* PlayerInventory;
 

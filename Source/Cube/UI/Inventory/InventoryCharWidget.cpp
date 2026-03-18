@@ -31,5 +31,5 @@ void UInventoryCharWidget::SetInventoryManager(UInventoryManager* NewInventoryMa
 {
 	DEBUG_CHECK_RETURN("IventoryWidget", "IventoryManager", NewInventoryManager)
 	InventoryManager = NewInventoryManager;
-	InventoryManager->OnItemsChanged.AddDynamic(this, &UInventoryCharWidget::RefreshInventory);
+	InventoryManager->OnItemsChanged.AddUObject(this, &UInventoryCharWidget::RefreshInventory);
 }

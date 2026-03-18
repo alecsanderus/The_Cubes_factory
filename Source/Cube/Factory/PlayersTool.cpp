@@ -66,7 +66,7 @@ void UPlayersTool::ChangeWeapon()
 void UPlayersTool::SetController(AHumanController* NewController)
 {
 	PlayerController = NewController;
-	PlayerController->PlayerEquipmentInventory->OnItemsChanged.AddDynamic(this, &UPlayersTool::CheckItems);
+	PlayerController->PlayerEquipmentInventory->OnItemsChanged.AddUObject(this, &UPlayersTool::CheckItems);
 }
 
 void UPlayersTool::CheckItems()

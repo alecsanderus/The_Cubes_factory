@@ -40,5 +40,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	FString Description = "Umniy Chelovec";
 
+
+	UPROPERTY(EditAnywhere)
+	class UBuildingConfigCategory* Category;
+
+	UPROPERTY(EditAnywhere)
+	int Priority;
+
+
 	
 };

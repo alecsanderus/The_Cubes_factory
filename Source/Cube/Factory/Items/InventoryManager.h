@@ -22,7 +22,7 @@ struct FInventoryItem
     int Count = -1;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemsChanged);
+DECLARE_MULTICAST_DELEGATE (FOnItemsChanged);
 
 
 UCLASS()
@@ -59,7 +59,6 @@ public:
     FInventoryItem GetItem(int Index);
     TArray <int> GetItems(UItemInfo* Object);
 
-    UPROPERTY(BlueprintAssignable)
     FOnItemsChanged OnItemsChanged;
     //void SwapItems(uint16 PositionA, uint16 PositionB);
 };
