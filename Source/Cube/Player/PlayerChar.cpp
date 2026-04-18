@@ -12,7 +12,8 @@
 #include "Cube/Fight/Weapons/Bullet.h"
 #include "Cube/DebugMacros.h"
 #include "Cube/Factory/InteractComponent.h"
-#include "Cube/Factory/PlayersTool.h"
+#include "HumanController.h" 
+#include "PlayersTool.h"
 
 
 
@@ -36,35 +37,46 @@ APlayerChar::APlayerChar()
 
     
     MainMesh = GetMesh();
-     
+
+  
+    
     PlayerTool = CreateDefaultSubobject <UPlayersTool>(TEXT("CubeTool"));
+
     PlayerTool->SetupAttachment(CameraComponent);
+    
    
    
 
     MyDamageManager = CreateDefaultSubobject<UDamageManager>(TEXT("DamageManager"));    
               
-  
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+    }
 }
 
 // Called when the game starts or when spawned
 void APlayerChar::BeginPlay()
 {
     Super::BeginPlay();
-    PlayerTool->SetWorldTransform(MainMesh->GetSocketTransform("WeaponHand"));
-    if (auto* contr = Cast <AHumanController>(GetController()))
-        PlayerTool->SetController(contr);
+
+    DEBUG_CHECK("APlayerChar", PlayerTool)
+    {
+        PlayerTool->SetWorldTransform(MainMesh->GetSocketTransform("WeaponHand"));
+        if (auto* contr = Cast <AHumanController>(GetController()))
+            PlayerTool->SetController(contr, CameraComponent);
 
 
-    PlayerTool->SetHandMode(EHandMode::HandlingWeapon);
-
-
-    
+        PlayerTool->SetHandMode(EHandMode::HandlingWeapon);
 
 
 
-    PlayerTool->CheckItems();
-    //DEBUG_CHECK("PlayerChar", "HandligWeaponType", HandligWeaponType)
+
+
+
+        PlayerTool->CheckItemsOnHand();
+    }
+    //DEBUG_CHECK("PlayerChar", HandligWeaponType)
     //{
     //    FVector WeaponLocation = MainMesh->GetSocketLocation("WeaponHand");
     //    FRotator WeaponRotation = MainMesh->GetSocketRotation("WeaponHand");
@@ -108,11 +120,13 @@ void APlayerChar::Look(const FInputActionValue& Value)
 
 void APlayerChar::StopShoot()
 {
+    DEBUG_CHECK("APlayerChar", PlayerTool)
     PlayerTool->Weapon_StopAttak();
 }
 
 void APlayerChar::StartShoot()
 {
+    DEBUG_CHECK("APlayerChar", PlayerTool)
     PlayerTool->Weapon_StartAttak();
 }
 
@@ -156,6 +170,26 @@ int APlayerChar::GetHealth()
 int APlayerChar::GetMaxHealth()
 {
     return 0; // MyDamageManager->MaxHealth;
+}
+
+void APlayerChar::StartJumping()
+{
+    Jump();
+}
+
+void APlayerChar::StopJump()
+{
+    StopJumping();
+}
+
+void APlayerChar::StartCrouch()
+{
+    Crouch();
+}
+
+void APlayerChar::StopCrouch()
+{
+    UnCrouch();
 }
 
 

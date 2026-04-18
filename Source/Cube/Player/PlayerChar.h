@@ -52,6 +52,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void TryInteract(float TraceDistance = 5000.f);
 
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void StartJumping();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void StopJump();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void StartCrouch();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void StopCrouch();
+
 	UFUNCTION(BlueprintCallable)
 	int GetHealth();
 
@@ -74,6 +86,7 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	UPlayersTool* PlayerTool;
+
 	
 	UPROPERTY (VisibleAnywhere, BlueprintReadOnly, Category = "Fight")
 	UDamageManager* MyDamageManager;

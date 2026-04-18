@@ -49,7 +49,7 @@ AFighterSphere::AFighterSphere()
 void AFighterSphere::BeginPlay()
 {
 	Super::BeginPlay();
-    DEBUG_CHECK("PlayerChar", "GameplayMappingContext", GameplayMappingContext)
+    DEBUG_CHECK("PlayerChar", GameplayMappingContext)
     {
         if (APlayerController* PC = Cast<APlayerController>(GetController()))
         {
@@ -149,9 +149,9 @@ void AFighterSphere::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
-        DEBUG_CHECK("PlayerChar", "LookAction", LookAction)
+        DEBUG_CHECK("PlayerChar", LookAction)
             EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFighterSphere::Look);
-        DEBUG_CHECK("PlayerChar", "MoveAction", MoveAction)
+        DEBUG_CHECK("PlayerChar", MoveAction)
             EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFighterSphere::Move);       
     }
 }

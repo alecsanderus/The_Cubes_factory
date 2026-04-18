@@ -29,6 +29,9 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	UTexture2D* Icon;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMesh* PrevewMesh;
 	
 	UPROPERTY(EditAnywhere)
 	TArray <FMaterialsToBuild> Materials;

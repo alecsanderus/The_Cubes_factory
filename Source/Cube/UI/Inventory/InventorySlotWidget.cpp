@@ -55,7 +55,7 @@ void UInventorySlotWidget::ShowTooltip()
     IsTooltipOn = 1;
     if (ActiveTooltip) return;
     if (!MyInfo) return;
-    DEBUG_CHECK_RETURN("UInventorySlotWidget", "TooltipClass", TooltipClass);
+    DEBUG_CHECK_RETURN("UInventorySlotWidget", TooltipClass);
 
     ActiveTooltip = CreateWidget <UItemTooltip>(this, TooltipClass);
     ActiveTooltip->AddToViewport();

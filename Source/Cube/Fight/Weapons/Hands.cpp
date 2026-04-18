@@ -19,7 +19,7 @@ AHands::AHands()
 void AHands::BeginPlay()
 {
     Super::BeginPlay();   
-    DEBUG_CHECK("Hands", "HandligWeaponType", HandsClass)
+    DEBUG_CHECK("Hands", HandsClass)
     {
 
         FActorSpawnParameters Params;

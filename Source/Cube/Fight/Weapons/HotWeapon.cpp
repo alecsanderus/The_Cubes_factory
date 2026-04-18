@@ -16,7 +16,7 @@ AHotWeapon::AHotWeapon()
 void AHotWeapon::BeginPlay()
 {
     Super::BeginPlay();
-    DEBUG_CHECK_RETURN("Skeletal mesh", "Hot Weapon", Mesh);
+    DEBUG_CHECK_RETURN("Skeletal mesh", Mesh);
 }
 
 
@@ -90,7 +90,7 @@ void AHotWeapon::CreateAttak()
 
     
    
-    DEBUG_CHECK_RETURN("Hot Weapon", "bullet or controller classes", (Bullet && MyOwnersController));
+    DEBUG_CHECK_RETURN("Hot Weapon", (Bullet && MyOwnersController));
 
     FTransform MuzzleTransform = Mesh->GetSocketTransform("Muzzle");
     FVector MuzzleLocation = MuzzleTransform.GetLocation();

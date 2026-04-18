@@ -9,14 +9,14 @@ void UInventoryWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    DEBUG_CHECK_RETURN("IventoryWidget", "objects classes",SlotWidgetClass && ItemGrid)
+    DEBUG_CHECK_RETURN("IventoryWidget", SlotWidgetClass && ItemGrid)
 
 
 }
 
 void UInventoryWidget::SetInventoryManager(UInventoryManager* NewInventoryManager)
 {
-    DEBUG_CHECK_RETURN("IventoryWidget", "IventoryManager", NewInventoryManager)
+    DEBUG_CHECK_RETURN("IventoryWidget", NewInventoryManager)
     InventoryManager = NewInventoryManager;
     InventoryManager->OnItemsChanged.AddUObject(this, &UInventoryWidget::RefreshInventory);  
 }
@@ -26,7 +26,7 @@ void UInventoryWidget::SetInventoryManager(UInventoryManager* NewInventoryManage
 void UInventoryWidget::RefreshInventory()
 {
  
-    DEBUG_CHECK_RETURN ("IventoryWidget", "objects classes", InventoryManager && SlotWidgetClass && ItemGrid)
+    DEBUG_CHECK_RETURN("IventoryWidget", InventoryManager && SlotWidgetClass && ItemGrid)
 
    if (!InventoryManager || !SlotWidgetClass || !ItemGrid)
         return;

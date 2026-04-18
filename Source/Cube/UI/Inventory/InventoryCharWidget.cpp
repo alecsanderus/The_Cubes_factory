@@ -10,12 +10,12 @@
 void UInventoryCharWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	DEBUG_CHECK_RETURN("IventoryCharWidget", "objects classes", Weapon_Slot && Armor_Slot && Helmet_Slot && SlotWidgetClass);
+	DEBUG_CHECK_RETURN("IventoryCharWidget", Weapon_Slot && Armor_Slot && Helmet_Slot && SlotWidgetClass);
 }
 
 void UInventoryCharWidget::RefreshInventory()
 {
-	DEBUG_CHECK_RETURN("IventoryCharWidget", "objects classes", Weapon_Slot && Armor_Slot && Helmet_Slot && SlotWidgetClass);
+	DEBUG_CHECK_RETURN("IventoryCharWidget", Weapon_Slot && Armor_Slot && Helmet_Slot && SlotWidgetClass);
 
 	Weapon_Slot->SetItem(InventoryManager->GetItem (EItemsInInventoryID::weapon).Object, -1);
 	Weapon_Slot->SetConfig(SlotWidgetClass, InventoryManager, EItemsInInventoryID::weapon);
@@ -29,7 +29,7 @@ void UInventoryCharWidget::RefreshInventory()
 
 void UInventoryCharWidget::SetInventoryManager(UInventoryManager* NewInventoryManager)
 {
-	DEBUG_CHECK_RETURN("IventoryWidget", "IventoryManager", NewInventoryManager)
+	DEBUG_CHECK_RETURN("IventoryWidget", NewInventoryManager)
 	InventoryManager = NewInventoryManager;
 	InventoryManager->OnItemsChanged.AddUObject(this, &UInventoryCharWidget::RefreshInventory);
 }

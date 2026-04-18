@@ -45,5 +45,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf <class UGigaButton> BuildingButtonClass;
 
+
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* DescriptionText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* DescriptionImage;
+
 	
 };

@@ -1,24 +1,26 @@
 #include "BuildMenu.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Cube/Factory/BuildingConfig.h"
-#include "Cube/Factory/BuildingConfigCategory.h"
-#include "Cube/CubeGameInstance.h"
+#include "Cube/Factory/Building/BuildingConfig.h"
+#include "Cube/Factory/Building/BuildingConfigCategory.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
-#include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "Cube/DebugMacros.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/ScrollBox.h"
 #include "Components/WrapBox.h"
+#include "Cube/Player/PlayerChar.h"
+#include "Cube/Player/PlayersTool.h"
+#include "Cube/Player/HumanController.h"
 
 
 
 void UBuildMenu::BuildMenu()
 {
     GetGameInstance();
-    DEBUG_CHECK_RETURN("UBuildMenu", "CategoryButtonClass", CategoryButtonClass);
-    DEBUG_CHECK_RETURN("UBuildMenu", "BuildingButtonClass", BuildingButtonClass);
+    DEBUG_CHECK_RETURN("UBuildMenu", CategoryButtonClass);
+    DEBUG_CHECK_RETURN("UBuildMenu", BuildingButtonClass);
     
     FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
@@ -119,12 +121,29 @@ void UBuildMenu::OnBuildinTapTapTap(int32 Id, FButtonTriggeredType Type)
     switch (Type)
     {
     case FButtonTriggeredType::Clicked:
+    {
+        auto paw = GetOwningPlayerPawn();
+        auto player = Cast <APlayerChar>(paw);
+        if (player)
+        {
+            player->PlayerTool->SetHandMode(EHandMode::Building, Configs[Id]);
+            if (auto contr = Cast <AHumanController> (player->GetController()))
+                contr->SwitchBuildingMenu();
+        }
+
+
+    }
         break;
     case FButtonTriggeredType::Pressed:
         break;
     case FButtonTriggeredType::Released:
         break;
     case FButtonTriggeredType::Hovered:
+    {
+        DescriptionText->SetText(FText::FromString(Configs[Id]->Description));
+        DescriptionImage->SetBrushFromTexture(Configs[Id]->Icon);
+    }
+
         break;
     case FButtonTriggeredType::Unhovered:
         break;
