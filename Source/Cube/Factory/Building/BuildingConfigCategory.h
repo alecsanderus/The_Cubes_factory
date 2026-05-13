@@ -16,7 +16,7 @@ public:
 	
 
 	UPROPERTY (EditAnywhere)
-	FString Name = "Nou name:)";
+	FText Name;
 
 	UPROPERTY(EditAnywhere)
 	UTexture2D* Icon;

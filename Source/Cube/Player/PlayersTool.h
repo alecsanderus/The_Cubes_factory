@@ -50,6 +50,9 @@ protected:
 
 	EHandMode OldTecHandMode = EHandMode::HandlingWeapon;
 
+	UPROPERTY(EditInstanceOnly)
+	class UBuildingConfig* TecBuildingConfig;
+
 public:	
 	UPROPERTY()
 	USceneComponent* MainComp;
@@ -70,6 +73,9 @@ public:
 	UFUNCTION()
 	void CheckItemsOnHand();
 
+	UFUNCTION()
+	void ConfirmBuilding();
+
 
 	
 
@@ -81,7 +87,7 @@ public:
 	TSubclassOf <class ABuildingGhost> BuildingGhostClass;
 
 	UPROPERTY(EditAnywhere)
-	float BuildingMaxDistance = 1000.f;
+	float BuildingMaxDistance = 5000.f;
 
 
 	UFUNCTION(BlueprintCallable)
@@ -95,4 +101,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Weapon_Attak();
+
+	FTransform SnapTransformToGrid(
+		const FTransform& GridCenter,
+		const FTransform& ObjectTransform,
+		double GridStepCm = 20,
+		double GridStepDeg = 45);
+	
 };

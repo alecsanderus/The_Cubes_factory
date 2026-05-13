@@ -25,7 +25,7 @@ class CUBE_API UBuildingConfig : public UDataAsset
 public:
 
 	UPROPERTY(EditAnywhere)
-	FString Name = "Nou Name Kakoy-to";
+	FText Name;
 	
 	UPROPERTY(EditAnywhere)
 	UTexture2D* Icon;
@@ -41,7 +41,7 @@ public:
 
 
 	UPROPERTY(EditAnywhere)
-	FString Description = "Umniy Chelovec";
+	FText Description;
 
 
 	UPROPERTY(EditAnywhere)

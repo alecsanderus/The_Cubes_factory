@@ -55,7 +55,7 @@ APlayerChar::APlayerChar()
     }
 }
 
-// Called when the game starts or when spawned
+
 void APlayerChar::BeginPlay()
 {
     Super::BeginPlay();

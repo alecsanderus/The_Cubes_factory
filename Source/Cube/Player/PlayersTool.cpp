@@ -6,6 +6,7 @@
 #include "Cube/Factory/Building/BuildingConfig.h"
 #include "Cube/DebugMacros.h"
 #include "Camera/CameraComponent.h"
+#include "Cube/Factory/Buildings/FoundationComponent.h"
 UPlayersTool::UPlayersTool()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -28,10 +29,30 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
 		{
-			Ghost->SetActorLocation(Hit.Location + FVector (0,0,0.01));
+			bool ok = 1;
+			if (auto com = Hit.GetComponent())
+			{
+				if (auto act = com->GetOwner())
+				{
+					if (auto GG = act->GetComponentByClass <UFoundationComponent>())
+					{
+						ok = 0;
+						FTransform trans = SnapTransformToGrid(act->GetTransform(), FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 }));
+						Ghost->SetActorTransform(trans);
+					}
+
+				}
+
+			}
+			if (ok) Ghost->SetActorLocation(Hit.Location);
+			if (Ghost->IsHidden())
+				Ghost->SetActorHiddenInGame(false);
 		}
 		else
-			Ghost->SetActorLocation(TraceEnd);
+		{
+			if (!Ghost->IsHidden())
+				Ghost->SetActorHiddenInGame(true);
+		}
 	}
 
 }
@@ -84,6 +105,7 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 		Ghost = GetWorld()->SpawnActor<ABuildingGhost>(BuildingGhostClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		Ghost->MainMesh->SetStaticMesh(conf->PrevewMesh);
 		Ghost->SetColor(0);
+		TecBuildingConfig = conf;
 
 
 	}
@@ -174,22 +196,74 @@ default:
 }
 }
 
+void UPlayersTool::ConfirmBuilding()
+{
+	if (!(TecHandMode == Building && Ghost && TecBuildingConfig)) return;
+	DEBUG_CHECK_RETURN("UPlayersTool", TecBuildingConfig->Object);
+	FActorSpawnParameters param;;
+	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+
+	GetWorld()->SpawnActor <AActor>(TecBuildingConfig->Object, Ghost->GetActorLocation(),Ghost->GetActorRotation(), param);
+}
+
 void UPlayersTool::Weapon_StopAttak()
 {
-	if (WeaponOnHand && TecHandMode == EHandMode::HandlingWeapon)
-		WeaponOnHand->StopAttak();
+	switch (TecHandMode)
+	{
+	case Nothing:
+		break;
+	case HandlingWeapon:
+	{
+		if (WeaponOnHand)
+			WeaponOnHand->StopAttak();
+	}
+		break;
+	case Building:
+		break;
+	case Destroying:
+		break;
+	case TurnBack:
+		break;
+	default:
+		break;
+	}
+
+	
 }
 
 void UPlayersTool::Weapon_StartAttak()
 {
-	if (WeaponOnHand && TecHandMode == EHandMode::HandlingWeapon)
-		WeaponOnHand->StartAttak();
+	switch (TecHandMode)
+	{
+	case Nothing:
+		break;
+	case HandlingWeapon:
+	{
+		if (WeaponOnHand)
+			WeaponOnHand->StartAttak();
+	}
+	break;
+	case Building:
+	{
+		ConfirmBuilding();
+	}
+		break;
+	case Destroying:
+		break;
+	case TurnBack:
+		break;
+	default:
+		break;
+	}
 }
 
 void UPlayersTool::Weapon_SetAttaking(bool Value)
 {
 	if (WeaponOnHand && TecHandMode == EHandMode::HandlingWeapon)
 		WeaponOnHand->SetAttaking(Value);
+	else if (Value) Weapon_StartAttak();
+	else Weapon_StopAttak();
 }
 
 void UPlayersTool::Weapon_Attak()
@@ -198,3 +272,48 @@ void UPlayersTool::Weapon_Attak()
 		WeaponOnHand->Attak();
 }
 
+
+
+FTransform UPlayersTool::SnapTransformToGrid(
+	const FTransform& GridCenter,
+	const FTransform& ObjectTransform,
+	double GridStepCm,
+	double GridStepDeg)
+{
+	FTransform LocalTransform =
+		ObjectTransform.GetRelativeTransform(GridCenter);
+
+
+	FVector LocalLocation = LocalTransform.GetLocation();
+
+	LocalLocation.X = FMath::GridSnap(LocalLocation.X, GridStepCm);
+	LocalLocation.Y = FMath::GridSnap(LocalLocation.Y, GridStepCm);
+	LocalLocation.Z = FMath::GridSnap(LocalLocation.Z, GridStepCm);
+
+	
+
+	FRotator LocalRotation =
+		LocalTransform.GetRotation().Rotator();
+
+	LocalRotation.Normalize();
+
+	LocalRotation.Pitch =
+		FMath::GridSnap(LocalRotation.Pitch, GridStepDeg);
+
+	LocalRotation.Yaw =
+		FMath::GridSnap(LocalRotation.Yaw, GridStepDeg);
+
+	LocalRotation.Roll =
+		FMath::GridSnap(LocalRotation.Roll, GridStepDeg);
+
+	LocalRotation.Normalize();
+
+
+	FTransform SnappedLocalTransform(
+		LocalRotation,
+		LocalLocation,
+		LocalTransform.GetScale3D());
+
+
+	return SnappedLocalTransform * GridCenter;
+}

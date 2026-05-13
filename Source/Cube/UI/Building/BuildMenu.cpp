@@ -140,7 +140,7 @@ void UBuildMenu::OnBuildinTapTapTap(int32 Id, FButtonTriggeredType Type)
         break;
     case FButtonTriggeredType::Hovered:
     {
-        DescriptionText->SetText(FText::FromString(Configs[Id]->Description));
+        DescriptionText->SetText(Configs[Id]->Description);
         DescriptionImage->SetBrushFromTexture(Configs[Id]->Icon);
     }
 
