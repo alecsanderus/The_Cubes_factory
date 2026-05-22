@@ -21,5 +21,9 @@ public:
 
 
 	UPROPERTY(EditAnywhere)
-	float SizeX = 200, SizeY = 200;
+	float SizeXY = 200;
+
+
+	UPROPERTY(EditAnywhere)
+	float SizeZ = 200;
 };

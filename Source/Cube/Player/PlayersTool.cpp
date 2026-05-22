@@ -1,4 +1,7 @@
 #include "PlayersTool.h"
+#include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/SCS_Node.h"
+#include "Engine/SimpleConstructionScript.h"
 #include "Cube/Player/HumanController.h"
 #include "Cube/Factory/Items/InventoryManager.h"
 #include "Cube/Fight/Weapons/Weapon.h"
@@ -7,6 +10,9 @@
 #include "Cube/DebugMacros.h"
 #include "Camera/CameraComponent.h"
 #include "Cube/Factory/Buildings/FoundationComponent.h"
+#include "Engine/OverlapResult.h"
+
+
 UPlayersTool::UPlayersTool()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -38,13 +44,38 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 					{
 						ok = 0;
 						FTransform trans = SnapTransformToGrid(act->GetTransform(), FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 }));
+						if (IsBuildingFoundation)
+						{
+							trans = CheckFoundationTransform(act->GetTransform(), trans, BuildingFoundationSizeXY, BuildingFoundationSizeZ);
+						}
 						Ghost->SetActorTransform(trans);
 					}
 
 				}
 
 			}
-			if (ok) Ghost->SetActorLocation(Hit.Location);
+			if (ok)
+			{
+				if (IsBuildingFoundation)
+				{
+					const auto& act = GetNearestFoundation(Hit.Location, Ghost->GetActorRotation().Quaternion(),
+						BuildingFoundationSizeXY, BuildingFoundationSizeZ, Ghost);
+					if (act)
+					{
+						FTransform trans = SnapTransformToGrid(act->GetTransform(), FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 }));
+					
+						trans = CheckFoundationTransform(act->GetTransform(), trans, BuildingFoundationSizeXY, BuildingFoundationSizeZ);
+						
+						Ghost->SetActorLocation(Hit.Location);
+						Ghost->SetActorTransform(trans);
+					}
+					else
+						Ghost->SetActorLocation(Hit.Location);
+				}
+				else
+					Ghost->SetActorLocation(Hit.Location);
+			}
+
 			if (Ghost->IsHidden())
 				Ghost->SetActorHiddenInGame(false);
 		}
@@ -106,6 +137,45 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 		Ghost->MainMesh->SetStaticMesh(conf->PrevewMesh);
 		Ghost->SetColor(0);
 		TecBuildingConfig = conf;
+
+
+		const AActor* ActorCDO = conf->Object->GetDefaultObject<AActor>();
+
+		if (ActorCDO)
+		{
+			UFoundationComponent* FoundComp = nullptr;
+
+			FoundComp = ActorCDO->FindComponentByClass<UFoundationComponent>();
+
+			if (!FoundComp)
+			{
+				if (UBlueprintGeneratedClass* BPClass = Cast<UBlueprintGeneratedClass>(ActorCDO->GetClass()))
+				{
+					if (USimpleConstructionScript* SCS = BPClass->SimpleConstructionScript)
+					{
+						for (USCS_Node* Node : SCS->GetAllNodes())
+						{
+							if (Node->ComponentTemplate && Node->ComponentTemplate->IsA<UFoundationComponent>())
+							{
+								FoundComp = Cast<UFoundationComponent>(Node->ComponentTemplate);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (FoundComp)
+			{
+				IsBuildingFoundation = 1;
+				BuildingFoundationSizeXY = FoundComp->SizeXY;
+				BuildingFoundationSizeZ = FoundComp->SizeZ;
+			}
+			else
+			{
+				IsBuildingFoundation = 0;
+			}
+		}
 
 
 	}
@@ -288,7 +358,7 @@ FTransform UPlayersTool::SnapTransformToGrid(
 
 	LocalLocation.X = FMath::GridSnap(LocalLocation.X, GridStepCm);
 	LocalLocation.Y = FMath::GridSnap(LocalLocation.Y, GridStepCm);
-	LocalLocation.Z = FMath::GridSnap(LocalLocation.Z, GridStepCm);
+	//LocalLocation.Z = FMath::GridSnap(LocalLocation.Z, GridStepCm);
 
 	
 
@@ -316,4 +386,119 @@ FTransform UPlayersTool::SnapTransformToGrid(
 
 
 	return SnappedLocalTransform * GridCenter;
+}
+
+
+FTransform UPlayersTool::CheckFoundationTransform(
+	const FTransform& GridCenter,
+	const FTransform& ObjectTransform,
+	double FoundationSizeXY,
+	double FoundationSizeZ)
+{
+
+	FVector LocalLocation = GridCenter.InverseTransformPosition(ObjectTransform.GetLocation());
+
+	const double HalfSize = FoundationSizeXY * 0.5;
+	const double EdgeThreshold = HalfSize * 0.4;
+
+	double AbsX = FMath::Abs(LocalLocation.X);
+	double AbsY = FMath::Abs(LocalLocation.Y);
+
+	FVector SnapOffset = FVector::ZeroVector;
+
+	if (AbsX > AbsY)
+	{
+		if (LocalLocation.X > EdgeThreshold)
+		{
+			SnapOffset = FVector(FoundationSizeXY, 0.f, 0.f);
+		}
+		else if (LocalLocation.X < -EdgeThreshold)
+		{
+			SnapOffset = FVector(-FoundationSizeXY, 0.f, 0.f);
+		}
+
+	}
+	else
+	{
+
+		if (LocalLocation.Y > EdgeThreshold)
+		{
+			SnapOffset = FVector(0.f, FoundationSizeXY, 0.f);
+		}
+		else if (LocalLocation.Y < -EdgeThreshold)
+		{
+			SnapOffset = FVector(0.f, -FoundationSizeXY, 0.f);
+		}
+	}
+	
+	
+
+
+	FVector WorldLocation = GridCenter.TransformPosition(SnapOffset);
+
+	if (SnapOffset == FVector::ZeroVector)
+	{
+		if (ObjectTransform.GetLocation().Z > GridCenter.GetLocation().Z + (FoundationSizeZ / 2))
+			WorldLocation.Z = ObjectTransform.GetLocation().Z;
+		else 
+			WorldLocation.Z = ObjectTransform.GetLocation().Z - FoundationSizeZ;
+	}
+
+	FQuat WorldRotation = GridCenter.GetRotation();
+
+	return FTransform(WorldRotation, WorldLocation, FVector::OneVector);
+}
+
+
+
+AActor* UPlayersTool::GetNearestFoundation(
+	FVector CheckLocation,
+	FQuat CheckRotation,
+	double FoundationSizeXY,
+	double FoundationSizeZ,
+	AActor* IgnoreActor)
+{
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
+
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionShape Cub = FCollisionShape::MakeBox (FVector3f (FoundationSizeXY/2, FoundationSizeXY/2, FoundationSizeZ/2));
+
+	FCollisionObjectQueryParams ObjectParams(FCollisionObjectQueryParams::InitType::AllObjects);
+
+	bool bHit = World->OverlapMultiByChannel(
+		OverlapResults,
+		CheckLocation,
+		CheckRotation,
+		ECC_Visibility,
+		Cub
+	);
+	
+
+	AActor* ClosestActor = nullptr;
+	double MinDistanceSq = FLT_MAX;
+
+	if (bHit)
+	{
+		for (const FOverlapResult& Result : OverlapResults)
+		{
+			AActor* HitActor = Result.GetActor();
+
+			if (HitActor && HitActor != IgnoreActor)
+			{				
+				if (HitActor->FindComponentByClass<UFoundationComponent>())
+				{
+					double CurrentDistanceSq = FVector::DistSquared(CheckLocation, HitActor->GetActorLocation());
+
+					if (CurrentDistanceSq < MinDistanceSq)
+					{
+						MinDistanceSq = CurrentDistanceSq;
+						ClosestActor = HitActor;
+					}
+				}
+			}
+		}
+	}
+
+	return ClosestActor;
 }

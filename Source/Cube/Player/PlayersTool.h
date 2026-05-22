@@ -53,6 +53,8 @@ protected:
 	UPROPERTY(EditInstanceOnly)
 	class UBuildingConfig* TecBuildingConfig;
 
+	bool IsBuildingFoundation = 0;
+	int BuildingFoundationSizeXY = 0, BuildingFoundationSizeZ = 0;
 public:	
 	UPROPERTY()
 	USceneComponent* MainComp;
@@ -105,7 +107,23 @@ public:
 	FTransform SnapTransformToGrid(
 		const FTransform& GridCenter,
 		const FTransform& ObjectTransform,
-		double GridStepCm = 20,
+		double GridStepCm = 50,
 		double GridStepDeg = 45);
+
+
+	FTransform CheckFoundationTransform(
+		const FTransform& GridCenter,
+		const FTransform& ObjectTransform,
+		double FoundationSizeXY,
+		double FoundationSizeZ);
+
+
+
+	AActor* GetNearestFoundation(
+		FVector CheckLocation,
+		FQuat CheckRotation,
+		double FoundationSizeXY,
+		double FoundationSizeZ,
+		AActor* IgnoreActor);
 	
 };
