@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CubeGameInstance.h"
-#include "Cube/Factory/InventoryManager.h"
+#include "Cube/Factory/Items/InventoryManager.h"
 #include "Kismet/GameplayStatics.h"
-#include "CubeSaveGame.h"
+#include "Cube/Player/CubeSaveGame.h"
 
 void UCubeGameInstance::Init()
 {

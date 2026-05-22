@@ -31,12 +31,12 @@ public class Cube : ModuleRules
 		
 		});
 
-        PublicIncludePaths.AddRange(new string[] {
-            "Cube/Characters",
-            "Cube/Fight",
-            "Cube/Weapons",
-            "Cube/MainMenu"
-        });
+        //PublicIncludePaths.AddRange(new string[] {
+        //    "Cube/Enemies",
+        //    "Cube/Fight",
+        //    "Cube/Player",
+        //    "Cube/MainMenu"
+        //});
 
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
