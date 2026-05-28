@@ -52,9 +52,11 @@ protected:
 
 	UPROPERTY(EditInstanceOnly)
 	class UBuildingConfig* TecBuildingConfig;
+		
+	bool BuildingOK = 1;
+	TFunction<FTransform(const AActor*, const FTransform, const AActor*)> BuildigTransformFunction;
+	AActor* BuildingCD0;
 
-	bool IsBuildingFoundation = 0;
-	int BuildingFoundationSizeXY = 0, BuildingFoundationSizeZ = 0;
 public:	
 	UPROPERTY()
 	USceneComponent* MainComp;
@@ -111,19 +113,12 @@ public:
 		double GridStepDeg = 45);
 
 
-	FTransform CheckFoundationTransform(
-		const FTransform& GridCenter,
-		const FTransform& ObjectTransform,
-		double FoundationSizeXY,
-		double FoundationSizeZ);
 
 
-
-	AActor* GetNearestFoundation(
-		FVector CheckLocation,
-		FQuat CheckRotation,
-		double FoundationSizeXY,
-		double FoundationSizeZ,
-		AActor* IgnoreActor);
+	bool IsObjectDuplicate(
+		TSubclassOf<AActor> ObjectClass,
+		const FTransform& TargetTransform,
+		float DistanceThreshold = 10.0f,
+		float AngleThresholdDeg = 5.0f);
 	
 };

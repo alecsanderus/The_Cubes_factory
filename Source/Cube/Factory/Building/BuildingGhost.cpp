@@ -34,7 +34,7 @@ void ABuildingGhost::SetColor(int NewColor)
 		
 	}
 	if (NewColor == LastColor) return;
+	LastColor = NewColor;
 	DynamicMaterial->SetScalarParameterValue (ColorParamName, NewColor);
-
 }
 
