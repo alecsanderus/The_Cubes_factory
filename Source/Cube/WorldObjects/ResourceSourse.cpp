@@ -2,7 +2,7 @@
 
 AResourceSourse::AResourceSourse()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	MainMesh = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("MainMesh"));
 	RootComponent = MainMesh;	
 }

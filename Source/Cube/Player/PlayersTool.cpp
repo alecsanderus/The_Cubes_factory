@@ -24,6 +24,9 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 {
 	if (Ghost)
 	{
+		bool NewOK = !IsObjectDuplicate(TecBuildingConfig->Object, Ghost->GetTransform());
+
+
 		DEBUG_CHECK_RETURN("UPlayersTool", PlayerCamera);
 		FHitResult Hit;
 		FVector TraceStart = PlayerCamera->GetComponentLocation(); ;
@@ -52,13 +55,48 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 			}
 
-			if (BuildigTransformFunction)
+			if (BuildigTransformFunction && ThatActor)
 			{
-				trans = BuildigTransformFunction(ThatActor, trans, BuildingCD0);
-				
+				bool OK = 0;
+
+
+				if (*CallType == ESnapCallType::Always)
+					OK = 1;
+				else if (*CallType == ESnapCallType::OnlyOnSnapped || *CallType == ESnapCallType::OnSnapped)
+				{
+
+
+					for (const TSubclassOf<AActor>& AllowedClass : *SnapToActor)
+					{
+						if (AllowedClass && ThatActor->IsA(AllowedClass))
+						{
+							OK = 1;
+							goto CallCheskEnd;
+						}
+					}
+
+
+					for (const TSubclassOf<UActorComponent>& RequiredComponentClass : *SnapToComponent)
+					{
+						if (RequiredComponentClass && ThatActor->FindComponentByClass(RequiredComponentClass))
+						{
+							OK = 1;
+							goto CallCheskEnd;
+						}
+					}
+				}
+
+	CallCheskEnd:
+				if (OK) trans = BuildigTransformFunction(ThatActor, trans, BuildingCD0);
+				else if (*CallType == ESnapCallType::OnlyOnSnapped)
+				{
+					NewOK = 0;
+				}
+
+			
 			}
 			else
-				UE_LOG(LogTemp, Error, TEXT("Has no BuildigTransformFunction"));
+				UE_LOG(LogTemp, Error, TEXT("Has no BuildigTransformFunction or ThatActor"));
 			Ghost->SetActorTransform(trans);
 			
 
@@ -67,21 +105,20 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 		}
 		else
 		{
+			NewOK = 0;
 			if (!Ghost->IsHidden())
 				Ghost->SetActorHiddenInGame(true);
 		}
 
 
+		
+			
+		if (BuildingOK != NewOK)
 		{
-			bool NewOK = !IsObjectDuplicate(TecBuildingConfig->Object, Ghost->GetTransform());
-			if (BuildingOK != NewOK)
-			{
-				BuildingOK = NewOK;
-				Ghost->SetColor(!BuildingOK);
-
-
-			}			
+			BuildingOK = NewOK;
+			Ghost->SetColor(!BuildingOK);
 		}
+		
 	}
 
 }
@@ -167,6 +204,9 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 			if (FoundComp)
 			{
 				BuildigTransformFunction = FoundComp->GetGhostPositionFF;
+				SnapToActor = &FoundComp->SnapToActor;
+				SnapToComponent = &FoundComp->SnapToComponent;
+				CallType = &FoundComp->CallType;
 			}
 			else
 			{

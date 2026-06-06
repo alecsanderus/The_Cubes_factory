@@ -16,6 +16,8 @@ AFoundationActor::AFoundationActor()
 		{return AFoundationActor::GetPosToSpawn(ac, tr, cd0); });
 	BuildingComp->ActorSnappedToActor.AddDynamic(this, &AFoundationActor::SnapMeToMe);
 	
+	BuildingComp->CallType = ESnapCallType::Always;
+	
 }
 
 void AFoundationActor::BeginPlay()

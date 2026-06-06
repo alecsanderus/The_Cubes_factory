@@ -17,6 +17,7 @@ enum EHandMode
 	TurnBack
 };
 
+enum class ESnapCallType : uint8;
 
 UCLASS()
 class CUBE_API UPlayersTool : public USceneComponent
@@ -55,7 +56,15 @@ protected:
 		
 	bool BuildingOK = 1;
 	TFunction<FTransform(const AActor*, const FTransform, const AActor*)> BuildigTransformFunction;
+
+	UPROPERTY(EditInstanceOnly)
 	AActor* BuildingCD0;
+
+	const TArray <TSubclassOf<AActor>>* SnapToActor;
+
+	const TArray <TSubclassOf<UActorComponent>>* SnapToComponent;
+
+	const ESnapCallType* CallType;
 
 public:	
 	UPROPERTY()

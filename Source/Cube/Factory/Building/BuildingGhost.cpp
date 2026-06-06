@@ -30,7 +30,7 @@ void ABuildingGhost::SetColor(int NewColor)
 	{
 		
 		DynamicMaterial = UMaterialInstanceDynamic::Create(BaseGhostMaterial, this);
-		MainMesh->SetMaterial(0, DynamicMaterial);
+		MainMesh->SetOverlayMaterial(DynamicMaterial);
 		
 	}
 	if (NewColor == LastColor) return;

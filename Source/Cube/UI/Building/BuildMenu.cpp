@@ -25,7 +25,7 @@ void UBuildMenu::BuildMenu()
     FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
     FARFilter Filter;
-    Filter.PackagePaths.Add(FName("/Game/Buildings/DataOnMenu"));
+    Filter.PackagePaths.Add(FName("/Game/Buildings"));
     Filter.ClassPaths.Add(FTopLevelAssetPath(UBuildingConfig::StaticClass()));
     Filter.bRecursivePaths = true;
 

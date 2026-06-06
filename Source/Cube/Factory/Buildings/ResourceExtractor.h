@@ -18,7 +18,11 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY (EditAnywhere)
 	class UBuildingComponent* MyBuildingComponent;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* MainMesh;
 
 	UFUNCTION(BlueprintCallable)
 	void SnapMeToSourse(AActor* Sourse);

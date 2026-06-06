@@ -6,6 +6,17 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorSnappedToActor, AActor*, TotActor);
 
+
+UENUM()
+enum class ESnapCallType : uint8
+{
+	Never,
+	OnSnapped,
+	OnlyOnSnapped,
+	Always
+};
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CUBE_API UBuildingComponent : public UActorComponent
 {
@@ -23,12 +34,16 @@ public:
 	UPROPERTY (EditAnywhere)
 	bool Destroyable = 1;
 
+
+
 	UPROPERTY(EditAnywhere)
 	TArray <TSubclassOf<AActor>> SnapToActor;
 
 	UPROPERTY(EditAnywhere)
-	TArray <TSubclassOf<AActor>> SnapToComponent;
+	TArray <TSubclassOf<UActorComponent>> SnapToComponent;
 
+	UPROPERTY(EditAnywhere)
+	ESnapCallType CallType = ESnapCallType::OnSnapped;
 
 	using FGetGhostPositionType = TFunction<FTransform(const AActor*, const FTransform, const AActor*)>;
 	FGetGhostPositionType GetGhostPositionFF;
