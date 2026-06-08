@@ -43,11 +43,10 @@ void UInventorySlotWidget::SetItem()
 }
 
 
-void UInventorySlotWidget::SetConfig(TSubclassOf < UInventorySlotWidget> MyBluprintClass, UInventoryManager* MyInventoryManager, int32 MySlotIndex)
+void UInventorySlotWidget::SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex)
 {
     InventoryManager = MyInventoryManager;
     SlotIndex = MySlotIndex;
-    MyClass = MyBluprintClass;
 }
 
 void UInventorySlotWidget::ShowTooltip()
@@ -124,7 +123,7 @@ void UInventorySlotWidget::NativeOnDragDetected(
     DragOp->SourceIndex = SlotIndex;
     DragOp->SourseInventory = InventoryManager;
 
-    UInventorySlotWidget* viso = CreateWidget<UInventorySlotWidget>(GetWorld(), MyClass);
+    UInventorySlotWidget* viso = CreateWidget<UInventorySlotWidget>(GetWorld(), GetClass());
 
     viso->SetItem(MyInfo,-1);
    // UInventorySlotWidget* viso = CreateWidget<UInventorySlotWidget>(GetWorld());
@@ -192,12 +191,7 @@ void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 FVector2D UInventorySlotWidget::GetWidgetScreenPosition() const
 {
-    // Получаем абсолютную позицию виджета в экранных координатах (в "пикселях Slate")
     FVector2D AbsolutePos = GetCachedGeometry().GetAbsolutePosition();
-
-    // Получаем размер виджета
     FVector2D WidgetSize = GetCachedGeometry().GetLocalSize();
-
-    // Рассчитываем позицию верхнего правого угла
     return AbsolutePos + FVector2D(WidgetSize.X, 0.f);
 }

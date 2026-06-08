@@ -236,6 +236,8 @@ void UPlayersTool::DeleteItemFromHand()
 	if (Ghost) {
 		Ghost->Destroy(); Ghost = nullptr;
 	}
+	if (WeaponOnHand)
+		WeaponOnHand = nullptr;
 }
 
 void UPlayersTool::ChangeWeapon()

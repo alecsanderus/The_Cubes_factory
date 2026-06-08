@@ -45,7 +45,7 @@ void UInventoryWidget::RefreshInventory()
         UInventorySlotWidget* Slote = CreateWidget<UInventorySlotWidget>(GetWorld(), SlotWidgetClass);
         
         Slote->SetItem(Item.Object, Item.Count);
-        Slote->SetConfig(SlotWidgetClass, InventoryManager, i);
+        Slote->SetConfig(InventoryManager, i);
         
 
        

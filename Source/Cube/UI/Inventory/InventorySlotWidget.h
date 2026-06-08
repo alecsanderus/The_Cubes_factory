@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,10 +17,7 @@ private:
 protected:
     UPROPERTY()
     class UItemInfo* MyInfo;
-
-    UPROPERTY();
-    TSubclassOf <UInventorySlotWidget> MyClass;
-
+       
     UPROPERTY();
     bool IsTooltipOn = 0;
 
@@ -70,7 +65,7 @@ public:
 
 
     UFUNCTION(BlueprintCallable)
-    void SetConfig(TSubclassOf <UInventorySlotWidget> MyBluprintClass, UInventoryManager* MyInventoryManager, int32 MySlotIndex);
+    void SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex);
 
     UPROPERTY(EditAnywhere)
     float TooltipDelay = 1.0f;
