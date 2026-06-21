@@ -30,4 +30,8 @@ public:
 
 	static FTransform GetPosToSpawn(const AActor* Object, const FTransform GhostTr, const AActor* CD0);
 
+	class UInteractComponent* InteractComp;
+
+	UFUNCTION(BlueprintCallable)
+	void Interact(UObject* Caller);
 };

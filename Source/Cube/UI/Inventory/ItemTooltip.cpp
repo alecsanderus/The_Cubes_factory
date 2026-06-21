@@ -15,8 +15,8 @@ void UItemTooltip::SetItem(UItemInfo* Info)
     }
 
 
-	Name->SetText(FText::FromString (Info->Name));
-    Description->SetText(FText::FromString(Info->Description));
+	Name->SetText(Info->Name);
+    Description->SetText(Info->Description);
     Weight->SetText(FText::AsNumber(Info->Weight));
 }
 

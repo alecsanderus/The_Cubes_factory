@@ -45,6 +45,8 @@ protected:
 	UPROPERTY(EditInstanceOnly)
 	AActor* ObjectOnHand;
 
+	UPROPERTY(EditInstanceOnly)
+	AActor* LastSnappedActor;
 
 	UPROPERTY(EditInstanceOnly)
 	class ABuildingGhost* Ghost;

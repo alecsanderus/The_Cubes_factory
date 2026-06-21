@@ -20,25 +20,27 @@ enum class EItemType : uint8
 
 
 UCLASS()
-class CUBE_API UItemInfo : public UDataAsset
+class CUBE_API UItemInfo : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
 
+	
+
 	UPROPERTY(EditAnywhere)
-	FString Name = "Nou Name Kakoy-to";
+	FText Name;
 
 	UPROPERTY(EditAnywhere)
 	EItemType Type = EItemType::nothing;
 	
 	UPROPERTY(EditAnywhere)
-	UStaticMesh* Mesh;
+	TObjectPtr <UStaticMesh> Mesh;
 
 	UPROPERTY(EditAnywhere)
-	UTexture2D* Icon;
+	TObjectPtr <UTexture2D> Icon;
 
 	UPROPERTY(EditAnywhere)
-	int Weight = 1;
+	int32  Weight = 1;
 
 	
 	UPROPERTY(EditAnywhere)
@@ -46,5 +48,24 @@ public:
 
 
 	UPROPERTY(EditAnywhere)
-	FString Description = "Umniy Chelovec";
+	FText Description;
+
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("Item", GetFName());
+	}
+
+
+//#if WITH_EDITOR
+//	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override
+//	{
+//		Super::PostEditChangeProperty(PropertyChangedEvent);
+//
+//		if (!RecipeID.IsValid())
+//		{
+//			RecipeID = FGuid::NewGuid();
+//			MarkPackageDirty();
+//		}
+//	}
+//#endif
 };

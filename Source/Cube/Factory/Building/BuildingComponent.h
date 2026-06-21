@@ -48,6 +48,7 @@ public:
 	using FGetGhostPositionType = TFunction<FTransform(const AActor*, const FTransform, const AActor*)>;
 	FGetGhostPositionType GetGhostPositionFF;
 
+		
 	void BindGetGhostPositionType(FGetGhostPositionType Funct) { GetGhostPositionFF = Funct; }
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)

@@ -40,12 +40,12 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
 		{
 			FTransform trans = FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 });
-			AActor* ThatActor = nullptr;
+			LastSnappedActor = nullptr;
 			if (auto com = Hit.GetComponent())
 			{
 				if (auto act = com->GetOwner())
 				{
-					ThatActor = act;
+					LastSnappedActor = act;
 					if (auto GG = Cast <AFoundationActor>(act))
 					{						
 						trans = SnapTransformToGrid(act->GetTransform(), trans);
@@ -55,7 +55,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 			}
 
-			if (BuildigTransformFunction && ThatActor)
+			if (BuildigTransformFunction && LastSnappedActor)
 			{
 				bool OK = 0;
 
@@ -68,7 +68,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 					for (const TSubclassOf<AActor>& AllowedClass : *SnapToActor)
 					{
-						if (AllowedClass && ThatActor->IsA(AllowedClass))
+						if (AllowedClass && LastSnappedActor->IsA(AllowedClass))
 						{
 							OK = 1;
 							goto CallCheskEnd;
@@ -78,7 +78,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 					for (const TSubclassOf<UActorComponent>& RequiredComponentClass : *SnapToComponent)
 					{
-						if (RequiredComponentClass && ThatActor->FindComponentByClass(RequiredComponentClass))
+						if (RequiredComponentClass && LastSnappedActor->FindComponentByClass(RequiredComponentClass))
 						{
 							OK = 1;
 							goto CallCheskEnd;
@@ -87,7 +87,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 				}
 
 	CallCheskEnd:
-				if (OK) trans = BuildigTransformFunction(ThatActor, trans, BuildingCD0);
+				if (OK) trans = BuildigTransformFunction(LastSnappedActor, trans, BuildingCD0);
 				else if (*CallType == ESnapCallType::OnlyOnSnapped)
 				{
 					NewOK = 0;
@@ -96,7 +96,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 			
 			}
 			else
-				UE_LOG(LogTemp, Error, TEXT("Has no BuildigTransformFunction or ThatActor"));
+				UE_LOG(LogTemp, Error, TEXT("Has no BuildigTransformFunction or LastSnappedActor"));
 			Ghost->SetActorTransform(trans);
 			
 
@@ -316,7 +316,11 @@ void UPlayersTool::ConfirmBuilding()
 	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
 
-	GetWorld()->SpawnActor <AActor>(TecBuildingConfig->Object, Ghost->GetActorLocation(),Ghost->GetActorRotation(), param);
+	auto* NewBuilding = GetWorld()->SpawnActor <AActor>(TecBuildingConfig->Object, Ghost->GetActorLocation(),Ghost->GetActorRotation(), param);
+	if (auto* comp = NewBuilding->GetComponentByClass <UBuildingComponent>())
+	{
+		comp->ActorSnappedToActor.Broadcast(LastSnappedActor);
+	}
 }
 
 void UPlayersTool::Weapon_StopAttak()
