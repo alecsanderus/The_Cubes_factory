@@ -39,5 +39,5 @@ public:
 	void SetItem(UItemInfo* Item, int amoun = 1);
 
 	UFUNCTION(BlueprintCallable)
-	void Interact(UObject* Caller);
+	void Interact(AActor* Caller);
 };

@@ -105,4 +105,11 @@ public:
 
 	void RegisterRecipe(FRecipe Recipe);
 
+
+	FMachine* GetMachine(int number);
+	FMachine* GetMachine(FGuid Guid);
+
+	FRecipe* GetRecipe(int number);
+	FRecipe* GetRecipe(FGuid Guid);
+	FRecipe* GetRecipe(FName Name);
 };

@@ -8,6 +8,11 @@ UCLASS()
 class CUBE_API UBuildingInventory : public UUserWidget
 {
 	GENERATED_BODY()
+private:
+protected:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	FGuid MyMachineId;
 public:
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite)
@@ -29,6 +34,9 @@ public:
 	class UInventoryManager* InventoryManager;
 	
 	UFUNCTION()
-	void SetInventoryManager(UInventoryManager* Manager);
+	void SetInventoryManager(FGuid MachineId);
 	virtual void NativeConstruct() override;
+
+	UFUNCTION (BlueprintCallable)
+	void ItemsChanged();
 };

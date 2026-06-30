@@ -33,5 +33,5 @@ public:
 	class UInteractComponent* InteractComp;
 
 	UFUNCTION(BlueprintCallable)
-	void Interact(UObject* Caller);
+	void Interact(AActor* Caller);
 };

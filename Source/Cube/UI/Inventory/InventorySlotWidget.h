@@ -15,7 +15,7 @@ class CUBE_API UInventorySlotWidget : public UUserWidget
 private:
     FVector2D GetWidgetScreenPosition() const;
 protected:
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     class UItemInfo* MyInfo;
        
     UPROPERTY();
@@ -34,10 +34,10 @@ public:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
     virtual void NativeDestruct() override;
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     int32 SlotIndex = 0;
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     UInventoryManager* InventoryManager;
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -62,10 +62,7 @@ public:
 
     void SetItem(class UItemInfo* ItemInfo, int Count);
     void SetItem();
-
-
-    UFUNCTION(BlueprintCallable)
-    void SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex);
+    void SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex, bool AutoSetItem = 0);
 
     UPROPERTY(EditAnywhere)
     float TooltipDelay = 1.0f;

@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PlayerChar.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -60,7 +57,7 @@ void APlayerChar::BeginPlay()
 {
     Super::BeginPlay();
 
-    DEBUG_CHECK("APlayerChar", PlayerTool)
+    DEBUG_CHECK(APlayerChar, PlayerTool)
     {
         PlayerTool->SetWorldTransform(MainMesh->GetSocketTransform("WeaponHand"));
         if (auto* contr = Cast <AHumanController>(GetController()))
@@ -76,7 +73,7 @@ void APlayerChar::BeginPlay()
 
         PlayerTool->CheckItemsOnHand();
     }
-    //DEBUG_CHECK("PlayerChar", HandligWeaponType)
+    //DEBUG_CHECK(PlayerChar, HandligWeaponType)
     //{
     //    FVector WeaponLocation = MainMesh->GetSocketLocation("WeaponHand");
     //    FRotator WeaponRotation = MainMesh->GetSocketRotation("WeaponHand");
@@ -120,13 +117,13 @@ void APlayerChar::Look(const FInputActionValue& Value)
 
 void APlayerChar::StopShoot()
 {
-    DEBUG_CHECK("APlayerChar", PlayerTool)
+    DEBUG_CHECK(APlayerChar, PlayerTool)
     PlayerTool->Weapon_StopAttak();
 }
 
 void APlayerChar::StartShoot()
 {
-    DEBUG_CHECK("APlayerChar", PlayerTool)
+    DEBUG_CHECK(APlayerChar, PlayerTool)
     PlayerTool->Weapon_StartAttak();
 }
 

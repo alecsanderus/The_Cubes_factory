@@ -23,7 +23,7 @@ void ABuildingGhost::Tick(float DeltaTime)
 
 void ABuildingGhost::SetColor(int NewColor)
 {
-	DEBUG_CHECK_RETURN("ABuildingGhost", BaseGhostMaterial);
+	DEBUG_CHECK_RETURN(ABuildingGhost, BaseGhostMaterial);
 	NewColor = (NewColor > 0) ? NewColor : 0;
 
 	if (LastColor == -1)

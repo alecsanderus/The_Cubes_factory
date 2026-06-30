@@ -9,7 +9,7 @@ void UFactorySubsystem::Tick(float DeltaTime)
 			
 			FMachine& TecMachine = MachinesList[Index];
 
-			DEBUG_CHECK("UFactorySubsystem::Tick", TecMachine.RecipeID.IsValid());
+			DEBUG_CHECK(UFactorySubsystem::Tick, TecMachine.RecipeID.IsValid());
 			FRecipe& TecRecipe = RecipesList[RecipeLookupMap[TecMachine.RecipeID]];
 			
 
@@ -100,4 +100,58 @@ void UFactorySubsystem::RegisterRecipe(FRecipe Recipe)
 	RecipesList.Add(Recipe);
 	RecipeLookupMap.Add(Recipe.RecipeID, RecipesList.Num() - 1);
 	RecipesNamesMap.Add(Recipe.Name, Recipe.RecipeID);
+}
+
+
+
+FMachine* UFactorySubsystem::GetMachine(int number)
+{
+	if (MachinesList.IsValidIndex(number))
+	{
+		return &MachinesList[number];
+	}
+	return nullptr;
+}
+
+FMachine* UFactorySubsystem::GetMachine(FGuid Guid)
+{
+	const int32* IndexPtr = MachineLookupMap.Find(Guid);
+	if (IndexPtr)
+	{
+		return GetMachine(*IndexPtr);
+	}
+	return nullptr;
+}
+
+
+
+FRecipe* UFactorySubsystem::GetRecipe(int number)
+{
+	if (RecipesList.IsValidIndex(number))
+	{
+		return &RecipesList[number];
+	}
+	return nullptr;
+}
+
+FRecipe* UFactorySubsystem::GetRecipe(FGuid Guid)
+{
+	const int32* IndexPtr = RecipeLookupMap.Find(Guid);
+
+	if (IndexPtr)
+	{
+		return GetRecipe(*IndexPtr);
+	}
+	return nullptr;
+}
+
+FRecipe* UFactorySubsystem::GetRecipe(FName Name)
+{
+	const FGuid* GuidPtr = RecipesNamesMap.Find(Name);
+
+	if (GuidPtr)
+	{
+		return GetRecipe(*GuidPtr);
+	}
+	return nullptr;
 }

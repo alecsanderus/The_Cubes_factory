@@ -126,6 +126,14 @@ void UInventoryManager::CheckInventory()
 	OnItemsChanged.Broadcast();
 }
 
+void UInventoryManager::SetItemOnSlot(const FInventoryItem& NewItem, int Position, bool Hide)
+{
+	if (Position >= ItemsArray.Num()) return;
+	ItemsArray[Position] = NewItem;
+	if (!Hide)
+		OnItemsChanged.Broadcast();
+}
+
 FInventoryItem UInventoryManager::GetItem(int Index)
 {
 	if (Index >= ItemsArray.Num())

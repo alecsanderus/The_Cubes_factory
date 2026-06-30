@@ -53,4 +53,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FOnActorSnappedToActor ActorSnappedToActor;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf <class UBuildingInventory> MainInteractWidget;
+
+	UPROPERTY(EditAnywhere)
+	FGuid MachineGuid;
+
+
 };

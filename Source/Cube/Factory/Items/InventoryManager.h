@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -56,6 +54,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void CheckInventory();
 
+    UFUNCTION(BlueprintCallable)
+    void SetItemOnSlot(const FInventoryItem& NewItem, int Position, bool Hide = false);
+	
     FInventoryItem GetItem(int Index);
     TArray <int> GetItems(UItemInfo* Object);
 

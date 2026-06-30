@@ -28,7 +28,7 @@ void ACollectibleItem::Tick(float DeltaTime)
 
 }
 
-void ACollectibleItem::Interact(UObject* Caller)
+void ACollectibleItem::Interact(AActor* Caller)
 {
 	APlayerChar* player = Cast <APlayerChar>(Caller);
 	if (!player) return;

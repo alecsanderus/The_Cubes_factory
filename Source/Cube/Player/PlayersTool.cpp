@@ -27,7 +27,7 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 		bool NewOK = !IsObjectDuplicate(TecBuildingConfig->Object, Ghost->GetTransform());
 
 
-		DEBUG_CHECK_RETURN("UPlayersTool", PlayerCamera);
+		DEBUG_CHECK_RETURN(UPlayersTool, PlayerCamera);
 		FHitResult Hit;
 		FVector TraceStart = PlayerCamera->GetComponentLocation(); ;
 		FVector TraceEnd = TraceStart + PlayerCamera->GetForwardVector() * BuildingMaxDistance;
@@ -159,9 +159,9 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 			break;
 		}		
 
-		DEBUG_CHECK_RETURN("UPlayersTool", BuildingGhostClass);
-		DEBUG_CHECK_RETURN("UPlayersTool", conf);
-		DEBUG_CHECK_RETURN("UPlayersTool", conf->PrevewMesh);
+		DEBUG_CHECK_RETURN(UPlayersTool, BuildingGhostClass);
+		DEBUG_CHECK_RETURN(UPlayersTool, conf);
+		DEBUG_CHECK_RETURN(UPlayersTool, conf->PrevewMesh);
 
 		DeleteItemFromHand();
 
@@ -271,7 +271,7 @@ void UPlayersTool::ChangeWeapon()
 
 void UPlayersTool::SetController(AHumanController* NewController, class UCameraComponent* NewCamera)
 {
-	DEBUG_CHECK_RETURN("UPlayersTool", NewController)
+	DEBUG_CHECK_RETURN(UPlayersTool, NewController)
 
 	PlayerController = NewController;
 	PlayerController->PlayerEquipmentInventory->OnItemsChanged.AddUObject(this, &UPlayersTool::CheckItemsOnHand);
@@ -308,7 +308,7 @@ default:
 void UPlayersTool::ConfirmBuilding()
 {
 	if (!(TecHandMode == Building && Ghost && TecBuildingConfig)) return;
-	DEBUG_CHECK_RETURN("UPlayersTool", TecBuildingConfig->Object);
+	DEBUG_CHECK_RETURN(UPlayersTool, TecBuildingConfig->Object);
 
 	if (!BuildingOK) return;
 

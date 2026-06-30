@@ -5,6 +5,11 @@
 #include "Cube/Factory/FactorySubsystem.h"
 #include "Cube/Factory/Items/ItemInfo.h"
 #include "Cube/DebugMacros.h"
+#include "GameFramework/Character.h"
+#include "Cube/Player/HumanController.h"
+#include "Cube/UI/Inventory/BuildingInventory.h"
+
+
 
 
 AResourceExtractor::AResourceExtractor()
@@ -44,8 +49,7 @@ void AResourceExtractor::SnapMeToSourse(AActor* Sourse)
 {
 	if (auto* surs = Cast <AResourceSourse>(Sourse))
 	{
-		DEBUG_CHECK_RETURN("AResourceExtractor", surs->ResourseData);
-		FName name = "AResourceExtractor";
+		DEBUG_CHECK_RETURN(AResourceExtractor, surs->ResourseData);
 		auto* subsyst = GetWorld()->GetSubsystem <UFactorySubsystem>();
 
 		FMachine mach{.MachineID = FGuid::NewGuid(), .MashineClass = GetClass(), .MachineTranform = GetTransform()};
@@ -64,7 +68,7 @@ void AResourceExtractor::SnapMeToSourse(AActor* Sourse)
 			subsyst->RegisterRecipe(Reiep);
 			mach.RecipeID = Reiep.RecipeID;
 		}
-
+		MyBuildingComponent->MachineGuid = mach.MachineID;
 		subsyst->RegisterMachine(mach);
 	}
 }
@@ -80,8 +84,25 @@ FTransform AResourceExtractor::GetPosToSpawn(const AActor* Object, const FTransf
 	return FTransform(GhostTr.Rotator(), Object->GetActorLocation() + FVector(0, 0, 100), FVector (1,1,1));
 }
 
-void AResourceExtractor::Interact(UObject* Caller)
+void AResourceExtractor::Interact(AActor* Caller)
 {
+	DEBUG_CHECK_RETURN(AResourceExtractor,MyBuildingComponent->MainInteractWidget);
 
+	auto* subsyst = GetWorld()->GetSubsystem <UFactorySubsystem>();
+	DEBUG_CHECK_RETURN(AResourceExtractor, subsyst);
+	auto* Mach = subsyst->GetMachine(MyBuildingComponent->MachineGuid);
+	DEBUG_CHECK_RETURN(AResourceExtractor, Mach);
+
+	auto* PlCha = Cast <ACharacter> (Caller);
+	if (!PlCha) return;
+	auto* Contr = PlCha->GetController();
+	if (!Contr) return;
+	auto* HContr = Cast <AHumanController>(Contr);
+	if (!HContr) return;
+
+	auto* Widg = CreateWidget<UBuildingInventory>(GetWorld(), MyBuildingComponent->MainInteractWidget);
+	HContr->OpenWindow(Widg, "AResourceExtractor");
+	Widg->SetInventoryManager(MyBuildingComponent->MachineGuid);
+	HContr->OpenAdditionalInventory();
 }
 

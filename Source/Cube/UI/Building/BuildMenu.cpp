@@ -19,8 +19,8 @@
 void UBuildMenu::BuildMenu()
 {
     GetGameInstance();
-    DEBUG_CHECK_RETURN("UBuildMenu", CategoryButtonClass);
-    DEBUG_CHECK_RETURN("UBuildMenu", BuildingButtonClass);
+    DEBUG_CHECK_RETURN(UBuildMenu, CategoryButtonClass);
+    DEBUG_CHECK_RETURN(UBuildMenu, BuildingButtonClass);
     
     FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
