@@ -70,7 +70,7 @@ struct FMachine
 };
 
 
-
+DECLARE_MULTICAST_DELEGATE(FOnItemsChangedOnSubsystem)
 
 
 UCLASS()
@@ -112,4 +112,6 @@ public:
 	FRecipe* GetRecipe(int number);
 	FRecipe* GetRecipe(FGuid Guid);
 	FRecipe* GetRecipe(FName Name);
+
+	FOnItemsChangedOnSubsystem OnItemsChanged;
 };

@@ -85,8 +85,9 @@ public:
 	UFUNCTION()
 	void SetController(AHumanController* NewController, class UCameraComponent* NewCamera);
 
-	UFUNCTION()
 	void CheckItemsOnHand();
+	void CheckItemsOnHand(int32 Index);
+
 
 	UFUNCTION()
 	void ConfirmBuilding();

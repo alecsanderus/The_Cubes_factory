@@ -45,13 +45,27 @@ void UInventorySlotWidget::SetItem()
 
 void UInventorySlotWidget::SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex, bool AutoSetItem)
 {
+    AutoUpdateEnabled = 0;
     InventoryManager = MyInventoryManager;
     SlotIndex = MySlotIndex;
     if (AutoSetItem)
     {
-        auto MyItem = MyInventoryManager->GetItem(MySlotIndex);
-        SetItem(MyItem.Object, MyItem.Count);
+        UpdateItem(-1);
     }
+}
+
+void UInventorySlotWidget::UpdateItem(int32 Index)
+{
+	if (Index != -1 && Index != SlotIndex) return;
+
+    DEBUG_CHECK_RETURN(UInventorySlotWidget, InventoryManager);
+	SetItem(InventoryManager->GetItem(SlotIndex).Object, InventoryManager->GetItem(SlotIndex).Count);
+}
+
+void UInventorySlotWidget::EnableAutoUpdate()
+{
+    AutoUpdateEnabled = 1;
+	InventoryManager->OnItemsChanged.AddUObject(this, &UInventorySlotWidget::UpdateItem);
 }
 
 void UInventorySlotWidget::ShowTooltip()
@@ -123,7 +137,9 @@ void UInventorySlotWidget::NativeOnDragDetected(
     UDragDropOperation*& OutOperation)
 {
     Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
     UE_LOG(LogTemp, Error, TEXT("DragDetected"));
+    if (!MyInfo) return;
     UIntemDragDropOperation* DragOp = NewObject<UIntemDragDropOperation>();
     DragOp->SourceIndex = SlotIndex;
     DragOp->SourseInventory = InventoryManager;
@@ -151,32 +167,64 @@ bool UInventorySlotWidget::NativeOnDrop(
 
     UIntemDragDropOperation* DragOp = Cast<UIntemDragDropOperation>(InOperation);
     if (!DragOp) return false;
+    if (!DragOp->SourseInventory) return false;
+    if (!InventoryManager) return false;
+    if (DragOp->SourceIndex < 0)  return false;
 
     const int32 From = DragOp->SourceIndex;
     const int32 To = SlotIndex;
     UE_LOG(LogTemp, Error, TEXT("Drop %d    %d"), From, To);
 
-    DEBUG_CHECK(UInventorySlotWidget, (InventoryManager && DragOp->SourseInventory))
+
+    if (From == To && InventoryManager == DragOp->SourseInventory)
+        return 1;
+
+    FInventoryItem ItemA = InventoryManager->ItemsArray[SlotIndex], ItemB = DragOp->SourseInventory->ItemsArray[DragOp->SourceIndex];
+
+    if (ItemA.Object == ItemB.Object)
     {
+        int32 TotalCount = ItemA.Count + ItemB.Count;
+        FInventoryItem NewItemA = ItemA;
+        NewItemA.Count = TotalCount;
 
-        FInventoryItem ItemA = InventoryManager->ItemsArray[SlotIndex], ItemB = DragOp->SourseInventory->ItemsArray[DragOp->SourceIndex];
+        int32 CanCount = InventoryManager->CanSetItem(NewItemA, To);
+        if (CanCount)
+        {
+            InventoryManager->SetItem(FInventoryItem(ItemA.Object, CanCount), SlotIndex, false, InventoryManager == DragOp->SourseInventory);
 
-        InventoryManager->RemoveItem(SlotIndex, 1);
-        DragOp->SourseInventory->RemoveItem(DragOp->SourceIndex, 1);
-        InventoryManager->AddItem(ItemB, SlotIndex, 1, 1);
-        DragOp->SourseInventory->AddItem(ItemA, DragOp->SourceIndex, 1, 1);
-
-        InventoryManager->CheckInventory();
-        DragOp->SourseInventory->CheckInventory();
-
-        //   if (UInventoryWidget && (From != To))
-         //  {
-            //   UInventoryWidget->ItemsArray.Swap(From, To);
-               // Обновляем UI
-               //GetOwningPlayer()->GetHUD()->Something... ?
-                   // Обычно вызываешь RefreshInventory() в основном виджете
-        //   }
+            DragOp->SourseInventory->SetItem(FInventoryItem((TotalCount - CanCount <= 0) ? nullptr : ItemA.Object, TotalCount - CanCount), DragOp->SourceIndex);
+        }
     }
+    else
+    {
+        bool CanSetA = (InventoryManager->CanSetItem(ItemB, To) == ItemB.Count) ? 1 : 0;
+        bool CanSetB = (DragOp->SourseInventory->CanSetItem(ItemA, DragOp->SourceIndex) == ItemA.Count) ? 1 : 0;
+
+        if (CanSetA && CanSetB)
+        {
+            if (!InventoryManager->SetItem(ItemB, SlotIndex, false, InventoryManager == DragOp->SourseInventory))
+                InventoryManager->AddItem(ItemB, true, InventoryManager == DragOp->SourseInventory);
+
+            if (!DragOp->SourseInventory->SetItem(ItemA, DragOp->SourceIndex))
+				DragOp->SourseInventory->AddItem(ItemA, true);
+        }
+    }
+    //InventoryManager->RemoveItem(SlotIndex, 1);
+    //DragOp->SourseInventory->RemoveItem(DragOp->SourceIndex, 1);
+    //InventoryManager->AddItem(ItemB, SlotIndex, 1, 1);
+    //DragOp->SourseInventory->AddItem(ItemA, DragOp->SourceIndex, 1, 1);
+
+    //InventoryManager->CheckInventory();
+    //DragOp->SourseInventory->CheckInventory();
+
+    //   if (UInventoryWidget && (From != To))
+     //  {
+        //   UInventoryWidget->ItemsArray.Swap(From, To);
+           // Обновляем UI
+           //GetOwningPlayer()->GetHUD()->Something... ?
+               // Обычно вызываешь RefreshInventory() в основном виджете
+    //   }
+
     return true;
 }
 

@@ -10,111 +10,188 @@ UInventoryManager::UInventoryManager()
 		
 }
 
-bool UInventoryManager::AddItem(const FInventoryItem& NewItem, int Position, bool stack, bool Hide)
+/**
+ * Добавляет предмет(ы) в инвентарь.
+ *
+ * Поведение:
+ * - Проверяет корректность `NewItem.Object` и `NewItem.Count`.
+ * - Если `stack == true`, пытается добавить количество в существующие слоты с тем же объектом,
+ *   используя `CanSetItem` для определения допустимого количества в конкретной ячейке.
+ * - Если после попытки сложить остались незанятые единицы и `ItemsCanSwitchType == true`,
+ *   заполняет пустые слоты (где `Count <= 0`) этим предметом с учётом `CanSetItem`.
+ * - Если остаётся `ToAdd > 0` и `AutoExpanding == true`, добавляет новый слот в `ItemsArray`.
+ * - Вызывает `CheckExpanding()` для корректировки размера массива при необходимости.
+ * - Если `Hide == false`, вызывает событие `OnItemsChanged.Broadcast()`.
+ *
+ * Параметры:
+ * - `NewItem` — добавляемый элемент (объект + количество).
+ * - `stack` — разрешать ли укладку в уже существующие стеки одинакового объекта.
+ * - `Hide` — подавлять ли вызов события об изменении инвентаря (`OnItemsChanged`).
+ *
+ * Возвращаемое значение:
+ * - Количество единиц, которые не удалось добавить (остаток). 0 означает, что весь `NewItem.Count` размещён.
+ *
+ * Эффекты:
+ * - Модифицирует `ItemsArray` (увеличивает `Count`, может установить `Object` в пустых слотах
+ *   или добавить новый слот).
+ * - Может вызвать `OnItemsChanged.Broadcast()` (если `Hide == false`). 
+ */
+
+
+int UInventoryManager::AddItem(const FInventoryItem& NewItem, bool stack, bool Hide)
 {
 	int size = ItemsArray.Num();
 	if (!NewItem.Object) return 0;
-
-	if (Position != -1)
+	if (NewItem.Count <= 0) return 0;
+	TArray <int32> UpdatedSlots;
+	int ToAdd = NewItem.Count;
+	if (stack)
 	{
-		if (AutoExpanding)
+		for (int pos = 0; pos < ItemsArray.Num(); pos++)
 		{
-			if (Position + GridSize >= size)
-				ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
+			auto& i = ItemsArray[pos];
+			if (i.Object == NewItem.Object)
+			{
+				int can = CanSetItem({ NewItem.Object, i.Count + ToAdd }, pos);
+				can -= i.Count;
+				if (can > 0)
+				{
+					ToAdd -= can;
+					i.Count += can;
+					if (ToAdd == 0)
+						break;
+					UpdatedSlots.Add(pos);
+				}
+			}
 		}
-		else
+	}
+	if (ToAdd > 0)
+	{
+		for (int pos = 0; pos < ItemsArray.Num(); pos++)
 		{
-			if (Position >= size)
-				return 0;
+			auto& i = ItemsArray[pos];
+			if (i.Count <= 0)
+			{
+				int can = CanSetItem({ NewItem.Object, ToAdd }, pos);
+				if (can > 0)
+				{
+					ToAdd -= can;
+					i.Count = can;
+					i.Object = NewItem.Object;
+					if (ToAdd == 0)
+						break;
+					UpdatedSlots.Add(pos);
+
+				}
+			}
 		}
-		ItemsArray[Position] = NewItem;
+	}
+
+	if (ToAdd > 0 && AutoExpanding)
+	{
+		int can = CanSetItem({ NewItem.Object, ToAdd }, -1);
+		ItemsArray.Push({ NewItem.Object, can });
+		ToAdd -= can;
+		UpdatedSlots.Add(ItemsArray.Num() - 1);
+	}
+
+	CheckExpanding();		
+	
+	if (!Hide)
+	{
+		for (int i : UpdatedSlots)
+		{
+			OnItemsChanged.Broadcast(i);
+		}
+	}
+
+	return ToAdd;
+}
+
+int UInventoryManager::CanSetItem(const FInventoryItem& NewItem, int Position)
+{
+	int size = ItemsArray.Num();
+
+	if (Position >= size)
+		return 0;
+
+
+	if (ItemsCanSwitchType)
+	{
+		return  CanAddItem(NewItem);
 	}
 	else
 	{
-		bool IsPlaced = 0;		
-		if (stack)
-		{
-			for (auto& i : ItemsArray)
-			{
-				if (i.Object == NewItem.Object)
-				{
-					i.Count += NewItem.Count;
-					IsPlaced = 1;
-					break;
-				}
-			}
-		}
-		if (!IsPlaced)
-		{
-			int counter = 0;
-			for (auto& i : ItemsArray)
-			{
-				if (i.Count == -1)
-				{
-					i = NewItem;
-					IsPlaced = 1;
-					Position = counter;
-					break;
-				}
-				++counter;
-			}
-		}
-		if (AutoExpanding)
-		{
-			if (!IsPlaced)
-			{
-				if (size + GridSize >= size)
-					ItemsArray.SetNum(((int)((size / GridSize) + 2)) * GridSize);
-				ItemsArray[size] = NewItem;
-			}
-			else
-				if (Position + GridSize >= size)
-					ItemsArray.SetNum(((int)((Position / GridSize) + 2)) * GridSize);
-		}
-		if (!IsPlaced) return 0;
-		
-	}
-	if (AutoExpanding)
-	{
-		size = ItemsArray.Num();
-		int NewSiz = 0;
-		for (int i = size - 1; i > 0; --i)
-		{
-			if (ItemsArray[i].Count != -1)
-			{
-				NewSiz = i;
-				break;
-			}
-		}
-		if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
-			ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
-	}
-	if (!Hide)
-		OnItemsChanged.Broadcast();
+		if (Position == -1)
+			return  0;
 
+		if (NewItem.Object == ItemsArray[Position].Object)
+			return CanAddItem(NewItem);
+		else
+			return 0;
+	}
+}
+
+int UInventoryManager::CanAddItem(const FInventoryItem& NewItem)
+{
+	// add logic to check if the item can be added to the inventory by weight, size, or other constraints
+	return NewItem.Count;
+}
+
+bool UInventoryManager::SetItem(const FInventoryItem& NewItem, int Position, bool Hide, bool DoNotCheckExpanding)
+{
+	if (CanSetItem(NewItem, Position) != NewItem.Count)
+		return 0;
+
+	int size = ItemsArray.Num();
+	if (Position >= size)
+	{
+		if (AutoExpanding)
+			ItemsArray.SetNum(Position + 1);
+		else
+			return 0;
+	}
+
+	if (ItemsCanBeNull)
+		ItemsArray[Position] = NewItem;
+	else
+	{
+		if (!NewItem.Object)
+			ItemsArray[Position].Count = 0;
+		else
+			ItemsArray[Position] = NewItem;
+	}	
+	if (!(DoNotCheckExpanding || Hide))
+		CheckExpanding();
+
+	if (!Hide)
+		OnItemsChanged.Broadcast(Position);
 	return 1;
 }
 
-void UInventoryManager::RemoveItem(int Position, bool Hide)
+void UInventoryManager::CheckExpanding()
 {
-	int size = ItemsArray.Num();
-	if (Position >= size) return;
-	ItemsArray[Position] = FInventoryItem();
-	int NewSiz = 0;
-	for (int i = size - 1; i > 0; --i)
+	if (AutoExpanding)
 	{
-		if (ItemsArray[i].Count != -1)
+		int size = ItemsArray.Num();
+		int LastElPosition = 0;
+		for (int i = size - 1; i > 0; --i)
 		{
-			NewSiz = i;			
-			break;
+			if (ItemsArray[i].Object)
+			{
+				LastElPosition = i;
+				break;
+			}
+		}
+		int NewSize = ((int)((LastElPosition) / GridSize)) * GridSize + GridSize * 2;
+		if (NewSize != size)
+		{
+			ItemsArray.SetNum(NewSize);
+			OnItemsChanged.Broadcast(-2);
 		}
 	}
-	if ((((int)((NewSiz + GridSize) / GridSize)) * GridSize) < size)
-		ItemsArray.SetNum(((int)((NewSiz / GridSize) + 2)) * GridSize);
-
-	if (!Hide)
-		OnItemsChanged.Broadcast();
 }
+
 
 void UInventoryManager::SetNum(int Size)
 {
@@ -123,7 +200,7 @@ void UInventoryManager::SetNum(int Size)
 
 void UInventoryManager::CheckInventory()
 {
-	OnItemsChanged.Broadcast();
+	OnItemsChanged.Broadcast(-1);
 }
 
 void UInventoryManager::SetItemOnSlot(const FInventoryItem& NewItem, int Position, bool Hide)
@@ -131,7 +208,7 @@ void UInventoryManager::SetItemOnSlot(const FInventoryItem& NewItem, int Positio
 	if (Position >= ItemsArray.Num()) return;
 	ItemsArray[Position] = NewItem;
 	if (!Hide)
-		OnItemsChanged.Broadcast();
+		OnItemsChanged.Broadcast(Position);
 }
 
 FInventoryItem UInventoryManager::GetItem(int Index)

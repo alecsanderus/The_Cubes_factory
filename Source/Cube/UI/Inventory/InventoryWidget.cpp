@@ -23,18 +23,17 @@ void UInventoryWidget::SetInventoryManager(UInventoryManager* NewInventoryManage
 
 
 
-void UInventoryWidget::RefreshInventory()
-{
- 
-    DEBUG_CHECK_RETURN(IventoryWidget, InventoryManager && SlotWidgetClass && ItemGrid)
+void UInventoryWidget::RefreshInventory(int32 Index)
+{	
+    DEBUG_CHECK_RETURN(IventoryWidget, InventoryManager && SlotWidgetClass && ItemGrid);
 
    if (!InventoryManager || !SlotWidgetClass || !ItemGrid)
         return;
     
-
+ /*
     ItemGrid->ClearChildren();
 
-
+   
 
     int32 size = InventoryManager->ItemsArray.Num();
     for (int32 i = 0; i < size; i++)
@@ -62,8 +61,68 @@ void UInventoryWidget::RefreshInventory()
             GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Bottom);
         }
     }
-
+    */
+    if (Index == -1)
+    {
+        RefreshInventory(-2);      
+    }
    
+    else if (Index == -2)
+    {       
+		int32 NewSize = InventoryManager->ItemsArray.Num();
+		int32 OldSize = InventorySlots.Num();
+        
+        // Добавляем недостающие слоты
+        for (int32 i = OldSize; i < NewSize; i++)
+            CreateAndAddSlot(i);        
+
+
+        for (int32 i = OldSize - 1; i >= NewSize; i--)
+        {
+            UInventorySlotWidget* SlotToRemove = InventorySlots[i];
+                if (SlotToRemove && ItemGrid)
+                    ItemGrid->RemoveChild(SlotToRemove);
+        }
+		InventorySlots.SetNum(NewSize);     
+    }
+
+    else
+    {
+        if (InventorySlots.IsValidIndex(Index))
+        {
+            InventorySlots[Index]->UpdateItem (-1);
+        }
+    }
+}
+
+void UInventoryWidget::RefreshInventory()
+{
+    RefreshInventory(-1);
+}
+
+void UInventoryWidget::CreateAndAddSlot(int32 Index)
+{
+    const FInventoryItem& Item = InventoryManager->ItemsArray[Index];
+    UInventorySlotWidget* SlotToAdd = CreateWidget<UInventorySlotWidget>(GetWorld(), SlotWidgetClass);
+
+    SlotToAdd->SetItem(Item.Object, Item.Count);
+    SlotToAdd->SetConfig(InventoryManager, Index);
+
+    int Row = Index / GridSize;
+    int Col = Index % GridSize;
+
+    UGridSlot* GridSlot = ItemGrid->AddChildToGrid(SlotToAdd, Row, Col);
+    if (GridSlot)
+    {
+        GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
+        GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Bottom);
+    }
+
+	if (Index >= InventorySlots.Num())
+	{
+		InventorySlots.SetNum(Index + 1);
+	}   
+	InventorySlots[Index] = SlotToAdd;
 }
 
 

@@ -9,7 +9,10 @@ void UFactorySubsystem::Tick(float DeltaTime)
 			
 			FMachine& TecMachine = MachinesList[Index];
 
-			DEBUG_CHECK(UFactorySubsystem::Tick, TecMachine.RecipeID.IsValid());
+			if (!TecMachine.RecipeID.IsValid())
+				return;
+
+		//	DEBUG_CHECK(UFactorySubsystem::Tick, TecMachine.RecipeID.IsValid());
 			FRecipe& TecRecipe = RecipesList[RecipeLookupMap[TecMachine.RecipeID]];
 			
 
@@ -27,6 +30,11 @@ void UFactorySubsystem::Tick(float DeltaTime)
 							if (TecMachine.Outputs[i].ID != TecRecipe.Outputs[i].ID ||
 								TecMachine.Outputs[i].Num + TecRecipe.Outputs[i].Num > 100)
 							{
+								if (!TecMachine.Outputs[i].ID.IsValid())
+								{
+									TecMachine.Outputs[i].ID = TecRecipe.Outputs[i].ID;
+									TecMachine.Outputs[i].Num = 0;
+								}
 								OK = 0;
 								break;
 							}
@@ -80,7 +88,7 @@ void UFactorySubsystem::Tick(float DeltaTime)
 
 
 		});
-		
+	OnItemsChanged.Broadcast();
 	return;
 }
 

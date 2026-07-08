@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "InventoryCharWidget.h"
 #include "Cube/DebugMacros.h"
 #include "Cube/Factory/Items/InventoryManager.h"
@@ -12,6 +9,7 @@ void UInventoryCharWidget::NativeConstruct()
 	Super::NativeConstruct();
 	DEBUG_CHECK_RETURN(IventoryCharWidget, Weapon_Slot && Armor_Slot && Helmet_Slot && SlotWidgetClass);
 }
+void UInventoryCharWidget::RefreshInventory(int32 Index) { RefreshInventory(); }
 
 void UInventoryCharWidget::RefreshInventory()
 {

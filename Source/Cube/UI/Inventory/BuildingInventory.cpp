@@ -6,9 +6,10 @@
 #include "Cube/DebugMacros.h"
 #include "Engine/AssetManager.h"
 
-void UBuildingInventory::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+
+void UBuildingInventory::UpdateInventory()
 {
-	Super::NativeTick(MyGeometry, InDeltaTime);
+    IsUpdatingNow = 1;
     if (InventoryManager && MyMachineId.IsValid())
     {
         auto subsyst = GetWorld()->GetSubsystem <UFactorySubsystem>();
@@ -26,18 +27,17 @@ void UBuildingInventory::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
             UItemInfo* NewAsset = AssetManager.GetPrimaryAssetObject<UItemInfo>(mach->Inputs[el].ID);
             if (!NewAsset)
             {
-                // ≈сли не загружен, загружаем синхронно. 
-                // LoadPrimaryAsset вернет SharedPtr на handle, .Get() заставит его дождатьс€ загрузки
                 TSharedPtr<FStreamableHandle> Handle = AssetManager.LoadPrimaryAsset(mach->Inputs[el].ID);
                 if (Handle.IsValid())
                 {
-                    Handle->WaitUntilComplete(); // ∆дем завершени€ загрузки
+                    Handle->WaitUntilComplete();
                     NewAsset = AssetManager.GetPrimaryAssetObject<UItemInfo>(mach->Inputs[el].ID);
                 }
             }
             DEBUG_CHECK(UBuildingInventory, NewAsset)
             {
-                SlotsIn[el]->SetItem(NewAsset, mach->Inputs[el].Num);
+                InventoryManager->SetItemOnSlot({ NewAsset,  mach->Inputs[el].Num }, el, true);
+                //  SlotsIn[el]->SetItem(NewAsset, mach->Inputs[el].Num);
             }
         }
 
@@ -46,23 +46,23 @@ void UBuildingInventory::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
             UItemInfo* NewAsset = AssetManager.GetPrimaryAssetObject<UItemInfo>(mach->Outputs[el].ID);
             if (!NewAsset)
             {
-                // ≈сли не загружен, загружаем синхронно. 
-                // LoadPrimaryAsset вернет SharedPtr на handle, .Get() заставит его дождатьс€ загрузки
                 TSharedPtr<FStreamableHandle> Handle = AssetManager.LoadPrimaryAsset(mach->Outputs[el].ID);
                 if (Handle.IsValid())
                 {
-                    Handle->WaitUntilComplete(); // ∆дем завершени€ загрузки
+                    Handle->WaitUntilComplete();
                     NewAsset = AssetManager.GetPrimaryAssetObject<UItemInfo>(mach->Outputs[el].ID);
                 }
             }
             DEBUG_CHECK(UBuildingInventory, NewAsset)
             {
-                SlotsOut[el]->SetItem(NewAsset, mach->Outputs[el].Num);
+                InventoryManager->SetItemOnSlot({ NewAsset,  mach->Outputs[el].Num }, el + SlotsIn.Num(), true);
+
+                //     SlotsOut[el]->SetItem(NewAsset, mach->Outputs[el].Num);
             }
         }
-
+        InventoryManager->OnItemsChanged.Broadcast(-1);
     }
-
+    IsUpdatingNow = 0;
 }
 
 void UBuildingInventory::SetInventoryManager(FGuid MachineId)
@@ -88,12 +88,16 @@ void UBuildingInventory::SetInventoryManager(FGuid MachineId)
 	for (int el = 0; el < SlotsIn.Num(); el++)
 	{
         SlotsIn[el]->SetConfig(InventoryManager, el, true);
+        SlotsIn[el]->EnableAutoUpdate();
 	}
 
     for (int el = 0; el < SlotsOut.Num(); el++)
     {
         SlotsOut[el]->SetConfig(InventoryManager, el + SlotsIn.Num(), true);
+        SlotsOut[el]->EnableAutoUpdate();
+
     }
+    subsyst->OnItemsChanged.AddUObject(this, &UBuildingInventory::UpdateInventory);    
 }
 
 
@@ -101,9 +105,9 @@ void UBuildingInventory::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    auto InitializeSlots = [this](const TArray<FName>& SlotNames, TArray<UInventorySlotWidget*>& Slots)
+    auto InitializeSlots = [this](const TArray<FName>& SlotNames, TArray<UInventorySlotWidget*>& InventorySlots)
         {
-            Slots.Empty();
+            InventorySlots.Empty();
 
             for (const FName& Name : SlotNames)
             {
@@ -111,7 +115,7 @@ void UBuildingInventory::NativeConstruct()
                 {
                     if (UInventorySlotWidget* CastedSlot = Cast<UInventorySlotWidget>(FoundWidget))
                     {
-                        Slots.Add(CastedSlot);
+                        InventorySlots.Add(CastedSlot);
                     }
                     else
                     {
@@ -126,9 +130,40 @@ void UBuildingInventory::NativeConstruct()
         };
     InitializeSlots(SlotInNames, SlotsIn);
     InitializeSlots(SlotOutNames, SlotsOut);
+
+
 }
 
-void UBuildingInventory::ItemsChanged()
+void UBuildingInventory::ItemsChanged(int32 Index)
 {
+	if (IsUpdatingNow) return;
     UE_LOG(LogTemp, Warning, TEXT("item change"));
+
+    if (InventoryManager && MyMachineId.IsValid())
+    {
+        auto subsyst = GetWorld()->GetSubsystem <UFactorySubsystem>();
+        auto* mach = subsyst->GetMachine(MyMachineId);
+
+
+        DEBUG_CHECK_RETURN(UBuildingInventory, mach);
+
+        DEBUG_CHECK_RETURN(UBuildingInventory, (mach->Inputs.Num() == SlotsIn.Num() && mach->Outputs.Num() == SlotsOut.Num()));
+
+
+        for (int el = 0; el < SlotsIn.Num(); el++)
+        {           
+            auto item = InventoryManager->GetItem(el);
+            auto elem = item.Object;
+            FPrimaryAssetId id = elem ? elem->GetPrimaryAssetId() : mach->Inputs[el].ID;
+            mach->Inputs[el] = { id, item.Count };
+        }
+
+        for (int el = 0; el < SlotsOut.Num(); el++)
+        {           
+            auto item = InventoryManager->GetItem(el + SlotsIn.Num());
+            auto elem = item.Object;
+			FPrimaryAssetId id = elem ? elem->GetPrimaryAssetId() : mach->Outputs[el].ID;
+            mach->Outputs[el] = {id, item.Count };
+        }
+    }
 }

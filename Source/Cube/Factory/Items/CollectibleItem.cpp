@@ -37,9 +37,9 @@ void ACollectibleItem::Interact(AActor* Caller)
 	AHumanController* Hcontr = Cast <AHumanController>(contr);
 	if (!Hcontr) return;
 	if (!Hcontr->PlayerInventory) return;
-	bool ye = Hcontr->PlayerInventory->AddItem(FInventoryItem{ ThisItem, amount }, -1);
-
-	if (ye) Destroy();
+	int ye = Hcontr->PlayerInventory->AddItem(FInventoryItem{ ThisItem, amount });
+	amount = ye;
+	if (amount <= 0) Destroy();
 	
 }
 

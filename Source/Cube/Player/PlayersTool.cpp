@@ -278,6 +278,7 @@ void UPlayersTool::SetController(AHumanController* NewController, class UCameraC
 	PlayerCamera = NewCamera;
 
 }
+void UPlayersTool::CheckItemsOnHand(int32 Index) { CheckItemsOnHand(); }
 
 void UPlayersTool::CheckItemsOnHand()
 {

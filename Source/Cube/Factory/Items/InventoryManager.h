@@ -20,7 +20,7 @@ struct FInventoryItem
     int Count = -1;
 };
 
-DECLARE_MULTICAST_DELEGATE (FOnItemsChanged);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemsChanged, int32);
 
 
 UCLASS()
@@ -34,7 +34,8 @@ public:
 
     UInventoryManager();
 
-
+    bool ItemsCanSwitchType = 1;
+    bool ItemsCanBeNull = 1;
 
     UPROPERTY(EditAnywhere)
     bool AutoExpanding = 1;
@@ -43,10 +44,19 @@ public:
     TArray <FInventoryItem> ItemsArray;
 	
     UFUNCTION(BlueprintCallable)
-    bool AddItem(const FInventoryItem& NewItem, int Position = -1, bool stack = true, bool Hide = false);
+    int AddItem(const FInventoryItem& NewItem, bool stack = true, bool Hide = false);
 
     UFUNCTION(BlueprintCallable)
-    void RemoveItem(int Position, bool Hide = false);
+    int CanSetItem(const FInventoryItem& NewItem, int Position);
+
+    UFUNCTION(BlueprintCallable)
+    int CanAddItem(const FInventoryItem& NewItem);
+
+    UFUNCTION(BlueprintCallable)
+    bool SetItem(const FInventoryItem& NewItem, int Position, bool Hide = false, bool DoNotCheckExpanding = false);
+
+    void CheckExpanding();
+
 
     UFUNCTION(BlueprintCallable)
     void SetNum(int Size);
@@ -60,6 +70,8 @@ public:
     FInventoryItem GetItem(int Index);
     TArray <int> GetItems(UItemInfo* Object);
 
-    FOnItemsChanged OnItemsChanged;
+	FOnItemsChanged OnItemsChanged; // -1 -> изменились ВСЕ, -2 -> изменился только размер массива, иначе индекс изменённого слота
+
+
     //void SwapItems(uint16 PositionA, uint16 PositionB);
 };

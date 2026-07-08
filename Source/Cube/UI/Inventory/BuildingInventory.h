@@ -10,10 +10,16 @@ class CUBE_API UBuildingInventory : public UUserWidget
 	GENERATED_BODY()
 private:
 protected:
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	
+	bool IsUpdatingNow = 0;
 
-	FGuid MyMachineId;
 public:
+	UFUNCTION(BlueprintCallable)
+	void UpdateInventory();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGuid MyMachineId;
+
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite)
 	TArray <FName> SlotInNames;
@@ -38,5 +44,5 @@ public:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION (BlueprintCallable)
-	void ItemsChanged();
+	void ItemsChanged(int32 Index);
 };

@@ -34,6 +34,8 @@ public:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
     virtual void NativeDestruct() override;
 
+    bool AutoUpdateEnabled = 0;
+
     UPROPERTY(EditAnywhere)
     int32 SlotIndex = 0;
 
@@ -63,6 +65,8 @@ public:
     void SetItem(class UItemInfo* ItemInfo, int Count);
     void SetItem();
     void SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex, bool AutoSetItem = 0);
+    void UpdateItem(int32 Index);
+    void EnableAutoUpdate();
 
     UPROPERTY(EditAnywhere)
     float TooltipDelay = 1.0f;
