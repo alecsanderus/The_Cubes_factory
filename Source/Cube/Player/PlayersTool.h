@@ -17,6 +17,7 @@ enum EHandMode
 	TurnBack
 };
 
+enum class ESnapCallType : uint8;
 
 UCLASS()
 class CUBE_API UPlayersTool : public USceneComponent
@@ -44,6 +45,8 @@ protected:
 	UPROPERTY(EditInstanceOnly)
 	AActor* ObjectOnHand;
 
+	UPROPERTY(EditInstanceOnly)
+	AActor* LastSnappedActor;
 
 	UPROPERTY(EditInstanceOnly)
 	class ABuildingGhost* Ghost;
@@ -52,9 +55,19 @@ protected:
 
 	UPROPERTY(EditInstanceOnly)
 	class UBuildingConfig* TecBuildingConfig;
+		
+	bool BuildingOK = 1;
+	TFunction<FTransform(const AActor*, const FTransform, const AActor*)> BuildigTransformFunction;
 
-	bool IsBuildingFoundation = 0;
-	int BuildingFoundationSizeXY = 0, BuildingFoundationSizeZ = 0;
+	UPROPERTY(EditInstanceOnly)
+	AActor* BuildingCD0;
+
+	const TArray <TSubclassOf<AActor>>* SnapToActor;
+
+	const TArray <TSubclassOf<UActorComponent>>* SnapToComponent;
+
+	const ESnapCallType* CallType;
+
 public:	
 	UPROPERTY()
 	USceneComponent* MainComp;
@@ -72,8 +85,9 @@ public:
 	UFUNCTION()
 	void SetController(AHumanController* NewController, class UCameraComponent* NewCamera);
 
-	UFUNCTION()
 	void CheckItemsOnHand();
+	void CheckItemsOnHand(int32 Index);
+
 
 	UFUNCTION()
 	void ConfirmBuilding();
@@ -111,19 +125,12 @@ public:
 		double GridStepDeg = 45);
 
 
-	FTransform CheckFoundationTransform(
-		const FTransform& GridCenter,
-		const FTransform& ObjectTransform,
-		double FoundationSizeXY,
-		double FoundationSizeZ);
 
 
-
-	AActor* GetNearestFoundation(
-		FVector CheckLocation,
-		FQuat CheckRotation,
-		double FoundationSizeXY,
-		double FoundationSizeZ,
-		AActor* IgnoreActor);
+	bool IsObjectDuplicate(
+		TSubclassOf<AActor> ObjectClass,
+		const FTransform& TargetTransform,
+		float DistanceThreshold = 10.0f,
+		float AngleThresholdDeg = 5.0f);
 	
 };

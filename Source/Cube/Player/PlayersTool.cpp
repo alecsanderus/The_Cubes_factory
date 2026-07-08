@@ -9,7 +9,8 @@
 #include "Cube/Factory/Building/BuildingConfig.h"
 #include "Cube/DebugMacros.h"
 #include "Camera/CameraComponent.h"
-#include "Cube/Factory/Buildings/FoundationComponent.h"
+#include "Cube/Factory/Building/BuildingComponent.h"
+#include "Cube/Factory/Buildings/FoundationActor.h"
 #include "Engine/OverlapResult.h"
 
 
@@ -23,7 +24,10 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 {
 	if (Ghost)
 	{
-		DEBUG_CHECK_RETURN("UPlayersTool", PlayerCamera);
+		bool NewOK = !IsObjectDuplicate(TecBuildingConfig->Object, Ghost->GetTransform());
+
+
+		DEBUG_CHECK_RETURN(UPlayersTool, PlayerCamera);
 		FHitResult Hit;
 		FVector TraceStart = PlayerCamera->GetComponentLocation(); ;
 		FVector TraceEnd = TraceStart + PlayerCamera->GetForwardVector() * BuildingMaxDistance;
@@ -35,55 +39,86 @@ void UPlayersTool::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
 		{
-			bool ok = 1;
+			FTransform trans = FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 });
+			LastSnappedActor = nullptr;
 			if (auto com = Hit.GetComponent())
 			{
 				if (auto act = com->GetOwner())
 				{
-					if (auto GG = act->GetComponentByClass <UFoundationComponent>())
-					{
-						ok = 0;
-						FTransform trans = SnapTransformToGrid(act->GetTransform(), FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 }));
-						if (IsBuildingFoundation)
-						{
-							trans = CheckFoundationTransform(act->GetTransform(), trans, BuildingFoundationSizeXY, BuildingFoundationSizeZ);
-						}
-						Ghost->SetActorTransform(trans);
+					LastSnappedActor = act;
+					if (auto GG = Cast <AFoundationActor>(act))
+					{						
+						trans = SnapTransformToGrid(act->GetTransform(), trans);
 					}
 
 				}
 
 			}
-			if (ok)
+
+			if (BuildigTransformFunction && LastSnappedActor)
 			{
-				if (IsBuildingFoundation)
+				bool OK = 0;
+
+
+				if (*CallType == ESnapCallType::Always)
+					OK = 1;
+				else if (*CallType == ESnapCallType::OnlyOnSnapped || *CallType == ESnapCallType::OnSnapped)
 				{
-					const auto& act = GetNearestFoundation(Hit.Location, Ghost->GetActorRotation().Quaternion(),
-						BuildingFoundationSizeXY, BuildingFoundationSizeZ, Ghost);
-					if (act)
+
+
+					for (const TSubclassOf<AActor>& AllowedClass : *SnapToActor)
 					{
-						FTransform trans = SnapTransformToGrid(act->GetTransform(), FTransform(Ghost->GetActorRotation(), Hit.Location, { 1,1,1 }));
-					
-						trans = CheckFoundationTransform(act->GetTransform(), trans, BuildingFoundationSizeXY, BuildingFoundationSizeZ);
-						
-						Ghost->SetActorLocation(Hit.Location);
-						Ghost->SetActorTransform(trans);
+						if (AllowedClass && LastSnappedActor->IsA(AllowedClass))
+						{
+							OK = 1;
+							goto CallCheskEnd;
+						}
 					}
-					else
-						Ghost->SetActorLocation(Hit.Location);
+
+
+					for (const TSubclassOf<UActorComponent>& RequiredComponentClass : *SnapToComponent)
+					{
+						if (RequiredComponentClass && LastSnappedActor->FindComponentByClass(RequiredComponentClass))
+						{
+							OK = 1;
+							goto CallCheskEnd;
+						}
+					}
 				}
-				else
-					Ghost->SetActorLocation(Hit.Location);
+
+	CallCheskEnd:
+				if (OK) trans = BuildigTransformFunction(LastSnappedActor, trans, BuildingCD0);
+				else if (*CallType == ESnapCallType::OnlyOnSnapped)
+				{
+					NewOK = 0;
+				}
+
+			
 			}
+			else
+				UE_LOG(LogTemp, Error, TEXT("Has no BuildigTransformFunction or LastSnappedActor"));
+			Ghost->SetActorTransform(trans);
+			
 
 			if (Ghost->IsHidden())
 				Ghost->SetActorHiddenInGame(false);
 		}
 		else
 		{
+			NewOK = 0;
 			if (!Ghost->IsHidden())
 				Ghost->SetActorHiddenInGame(true);
 		}
+
+
+		
+			
+		if (BuildingOK != NewOK)
+		{
+			BuildingOK = NewOK;
+			Ghost->SetColor(!BuildingOK);
+		}
+		
 	}
 
 }
@@ -124,9 +159,9 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 			break;
 		}		
 
-		DEBUG_CHECK_RETURN("UPlayersTool", BuildingGhostClass);
-		DEBUG_CHECK_RETURN("UPlayersTool", conf);
-		DEBUG_CHECK_RETURN("UPlayersTool", conf->PrevewMesh);
+		DEBUG_CHECK_RETURN(UPlayersTool, BuildingGhostClass);
+		DEBUG_CHECK_RETURN(UPlayersTool, conf);
+		DEBUG_CHECK_RETURN(UPlayersTool, conf->PrevewMesh);
 
 		DeleteItemFromHand();
 
@@ -139,13 +174,14 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 		TecBuildingConfig = conf;
 
 
-		const AActor* ActorCDO = conf->Object->GetDefaultObject<AActor>();
-
+		AActor* ActorCDO = conf->Object->GetDefaultObject<AActor>();
+		
 		if (ActorCDO)
 		{
-			UFoundationComponent* FoundComp = nullptr;
+			BuildingCD0 = ActorCDO;
+			UBuildingComponent* FoundComp = nullptr;
 
-			FoundComp = ActorCDO->FindComponentByClass<UFoundationComponent>();
+			FoundComp = ActorCDO->FindComponentByClass<UBuildingComponent>();
 
 			if (!FoundComp)
 			{
@@ -155,9 +191,9 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 					{
 						for (USCS_Node* Node : SCS->GetAllNodes())
 						{
-							if (Node->ComponentTemplate && Node->ComponentTemplate->IsA<UFoundationComponent>())
+							if (Node->ComponentTemplate && Node->ComponentTemplate->IsA<UBuildingComponent>())
 							{
-								FoundComp = Cast<UFoundationComponent>(Node->ComponentTemplate);
+								FoundComp = Cast<UBuildingComponent>(Node->ComponentTemplate);
 								break;
 							}
 						}
@@ -167,13 +203,14 @@ void UPlayersTool::SetHandMode(EHandMode NewMode, UObject* param)
 
 			if (FoundComp)
 			{
-				IsBuildingFoundation = 1;
-				BuildingFoundationSizeXY = FoundComp->SizeXY;
-				BuildingFoundationSizeZ = FoundComp->SizeZ;
+				BuildigTransformFunction = FoundComp->GetGhostPositionFF;
+				SnapToActor = &FoundComp->SnapToActor;
+				SnapToComponent = &FoundComp->SnapToComponent;
+				CallType = &FoundComp->CallType;
 			}
 			else
 			{
-				IsBuildingFoundation = 0;
+				BuildigTransformFunction = nullptr;
 			}
 		}
 
@@ -199,6 +236,8 @@ void UPlayersTool::DeleteItemFromHand()
 	if (Ghost) {
 		Ghost->Destroy(); Ghost = nullptr;
 	}
+	if (WeaponOnHand)
+		WeaponOnHand = nullptr;
 }
 
 void UPlayersTool::ChangeWeapon()
@@ -232,13 +271,14 @@ void UPlayersTool::ChangeWeapon()
 
 void UPlayersTool::SetController(AHumanController* NewController, class UCameraComponent* NewCamera)
 {
-	DEBUG_CHECK_RETURN("UPlayersTool", NewController)
+	DEBUG_CHECK_RETURN(UPlayersTool, NewController)
 
 	PlayerController = NewController;
 	PlayerController->PlayerEquipmentInventory->OnItemsChanged.AddUObject(this, &UPlayersTool::CheckItemsOnHand);
 	PlayerCamera = NewCamera;
 
 }
+void UPlayersTool::CheckItemsOnHand(int32 Index) { CheckItemsOnHand(); }
 
 void UPlayersTool::CheckItemsOnHand()
 {
@@ -269,12 +309,19 @@ default:
 void UPlayersTool::ConfirmBuilding()
 {
 	if (!(TecHandMode == Building && Ghost && TecBuildingConfig)) return;
-	DEBUG_CHECK_RETURN("UPlayersTool", TecBuildingConfig->Object);
+	DEBUG_CHECK_RETURN(UPlayersTool, TecBuildingConfig->Object);
+
+	if (!BuildingOK) return;
+
 	FActorSpawnParameters param;;
 	param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
 
-	GetWorld()->SpawnActor <AActor>(TecBuildingConfig->Object, Ghost->GetActorLocation(),Ghost->GetActorRotation(), param);
+	auto* NewBuilding = GetWorld()->SpawnActor <AActor>(TecBuildingConfig->Object, Ghost->GetActorLocation(),Ghost->GetActorRotation(), param);
+	if (auto* comp = NewBuilding->GetComponentByClass <UBuildingComponent>())
+	{
+		comp->ActorSnappedToActor.Broadcast(LastSnappedActor);
+	}
 }
 
 void UPlayersTool::Weapon_StopAttak()
@@ -389,116 +436,59 @@ FTransform UPlayersTool::SnapTransformToGrid(
 }
 
 
-FTransform UPlayersTool::CheckFoundationTransform(
-	const FTransform& GridCenter,
-	const FTransform& ObjectTransform,
-	double FoundationSizeXY,
-	double FoundationSizeZ)
-{
-
-	FVector LocalLocation = GridCenter.InverseTransformPosition(ObjectTransform.GetLocation());
-
-	const double HalfSize = FoundationSizeXY * 0.5;
-	const double EdgeThreshold = HalfSize * 0.4;
-
-	double AbsX = FMath::Abs(LocalLocation.X);
-	double AbsY = FMath::Abs(LocalLocation.Y);
-
-	FVector SnapOffset = FVector::ZeroVector;
-
-	if (AbsX > AbsY)
-	{
-		if (LocalLocation.X > EdgeThreshold)
-		{
-			SnapOffset = FVector(FoundationSizeXY, 0.f, 0.f);
-		}
-		else if (LocalLocation.X < -EdgeThreshold)
-		{
-			SnapOffset = FVector(-FoundationSizeXY, 0.f, 0.f);
-		}
-
-	}
-	else
-	{
-
-		if (LocalLocation.Y > EdgeThreshold)
-		{
-			SnapOffset = FVector(0.f, FoundationSizeXY, 0.f);
-		}
-		else if (LocalLocation.Y < -EdgeThreshold)
-		{
-			SnapOffset = FVector(0.f, -FoundationSizeXY, 0.f);
-		}
-	}
-	
-	
 
 
-	FVector WorldLocation = GridCenter.TransformPosition(SnapOffset);
-
-	if (SnapOffset == FVector::ZeroVector)
-	{
-		if (ObjectTransform.GetLocation().Z > GridCenter.GetLocation().Z + (FoundationSizeZ / 2))
-			WorldLocation.Z = ObjectTransform.GetLocation().Z;
-		else 
-			WorldLocation.Z = ObjectTransform.GetLocation().Z - FoundationSizeZ;
-	}
-
-	FQuat WorldRotation = GridCenter.GetRotation();
-
-	return FTransform(WorldRotation, WorldLocation, FVector::OneVector);
-}
-
-
-
-AActor* UPlayersTool::GetNearestFoundation(
-	FVector CheckLocation,
-	FQuat CheckRotation,
-	double FoundationSizeXY,
-	double FoundationSizeZ,
-	AActor* IgnoreActor)
+bool UPlayersTool::IsObjectDuplicate(
+	TSubclassOf<AActor> ObjectClass,
+	const FTransform& TargetTransform,
+	float DistanceThreshold,
+	float AngleThresholdDeg)
 {
 	UWorld* World = GetWorld();
-	if (!World) return nullptr;
+	if (!World || !ObjectClass) return false;
 
-	TArray<FOverlapResult> OverlapResults;
-	FCollisionShape Cub = FCollisionShape::MakeBox (FVector3f (FoundationSizeXY/2, FoundationSizeXY/2, FoundationSizeZ/2));
+	FVector CheckLocation = TargetTransform.GetLocation();
+	FCollisionShape CheckShape = FCollisionShape::MakeBox(FVector(DistanceThreshold));
 
-	FCollisionObjectQueryParams ObjectParams(FCollisionObjectQueryParams::InitType::AllObjects);
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams Params;
 
-	bool bHit = World->OverlapMultiByChannel(
-		OverlapResults,
+	bool bHasOverlap = World->OverlapMultiByChannel(
+		Overlaps,
 		CheckLocation,
-		CheckRotation,
+		TargetTransform.GetRotation(),
 		ECC_Visibility,
-		Cub
+		CheckShape,
+		Params
 	);
-	
 
-	AActor* ClosestActor = nullptr;
-	double MinDistanceSq = FLT_MAX;
+	if (!bHasOverlap) return false;
 
-	if (bHit)
+	const float DistSqThreshold = FMath::Square(DistanceThreshold);
+	const float AngleRadThreshold = FMath::DegreesToRadians(AngleThresholdDeg);
+
+	for (const FOverlapResult& Result : Overlaps)
 	{
-		for (const FOverlapResult& Result : OverlapResults)
-		{
-			AActor* HitActor = Result.GetActor();
+		AActor* OverlappedActor = Result.GetActor();
 
-			if (HitActor && HitActor != IgnoreActor)
-			{				
-				if (HitActor->FindComponentByClass<UFoundationComponent>())
-				{
-					double CurrentDistanceSq = FVector::DistSquared(CheckLocation, HitActor->GetActorLocation());
+		if (OverlappedActor && OverlappedActor->GetClass() == ObjectClass)
+		{		
+			float CurrentDistSq = FVector::DistSquared(CheckLocation, OverlappedActor->GetActorLocation());
 
-					if (CurrentDistanceSq < MinDistanceSq)
-					{
-						MinDistanceSq = CurrentDistanceSq;
-						ClosestActor = HitActor;
-					}
+			if (CurrentDistSq <= DistSqThreshold)
+			{			
+				FQuat TargetQuat = TargetTransform.GetRotation();
+				FQuat ExistingQuat = OverlappedActor->GetActorQuat();
+
+				float AngularDiffRad = TargetQuat.AngularDistance(ExistingQuat);
+
+				if (FMath::RadiansToDegrees(AngularDiffRad) <= AngleThresholdDeg)
+				{				
+					return true;
 				}
 			}
 		}
 	}
 
-	return ClosestActor;
+	return false;
 }

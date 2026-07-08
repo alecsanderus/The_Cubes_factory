@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -17,12 +15,9 @@ class CUBE_API UInventorySlotWidget : public UUserWidget
 private:
     FVector2D GetWidgetScreenPosition() const;
 protected:
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     class UItemInfo* MyInfo;
-
-    UPROPERTY();
-    TSubclassOf <UInventorySlotWidget> MyClass;
-
+       
     UPROPERTY();
     bool IsTooltipOn = 0;
 
@@ -39,10 +34,12 @@ public:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
     virtual void NativeDestruct() override;
 
-    UPROPERTY()
+    bool AutoUpdateEnabled = 0;
+
+    UPROPERTY(EditAnywhere)
     int32 SlotIndex = 0;
 
-    UPROPERTY()
+    UPROPERTY(EditAnywhere)
     UInventoryManager* InventoryManager;
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -67,10 +64,9 @@ public:
 
     void SetItem(class UItemInfo* ItemInfo, int Count);
     void SetItem();
-
-
-    UFUNCTION(BlueprintCallable)
-    void SetConfig(TSubclassOf <UInventorySlotWidget> MyBluprintClass, UInventoryManager* MyInventoryManager, int32 MySlotIndex);
+    void SetConfig(UInventoryManager* MyInventoryManager, int32 MySlotIndex, bool AutoSetItem = 0);
+    void UpdateItem(int32 Index);
+    void EnableAutoUpdate();
 
     UPROPERTY(EditAnywhere)
     float TooltipDelay = 1.0f;

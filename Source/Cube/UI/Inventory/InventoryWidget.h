@@ -17,12 +17,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 GridSize = 13;
 
+
+	UPROPERTY()
 	UInventoryManager* InventoryManager;
+
+	void CreateAndAddSlot(int32 Index);
+
+	UPROPERTY()
+	TArray <UInventorySlotWidget*> InventorySlots;
 public:
 	virtual void NativeConstruct() override;
 
-	UFUNCTION (BlueprintCallable)
+	void RefreshInventory(int32 Index);
 	void RefreshInventory();
+
 
 	UFUNCTION(BlueprintCallable)
 	void SetInventoryManager(UInventoryManager* NewInventoryManager);

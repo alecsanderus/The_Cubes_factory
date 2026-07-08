@@ -1,11 +1,8 @@
-
-
-
 #include "BuildingComponent.h"
 
 UBuildingComponent::UBuildingComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 }
 

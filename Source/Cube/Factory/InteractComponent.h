@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,7 +5,7 @@
 #include <functional>
 #include "InteractComponent.generated.h"
 
-
+class AActor;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CUBE_API UInteractComponent : public UActorComponent
 {
@@ -23,10 +21,10 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void Interact(UObject* Caller);
-    void SetInteractFunction(std::function<void(UObject* Caller)> NewInteractFunct);
+	virtual void Interact(AActor* Caller);
+    void SetInteractFunction(std::function<void(AActor* Caller)> NewInteractFunct);
 
 
-    std::function<void(UObject* Caller)> InteractFunct;
+    std::function<void(AActor* Caller)> InteractFunct;
 		
 };

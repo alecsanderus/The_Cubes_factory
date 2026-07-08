@@ -19,13 +19,13 @@
 void UBuildMenu::BuildMenu()
 {
     GetGameInstance();
-    DEBUG_CHECK_RETURN("UBuildMenu", CategoryButtonClass);
-    DEBUG_CHECK_RETURN("UBuildMenu", BuildingButtonClass);
+    DEBUG_CHECK_RETURN(UBuildMenu, CategoryButtonClass);
+    DEBUG_CHECK_RETURN(UBuildMenu, BuildingButtonClass);
     
     FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 
     FARFilter Filter;
-    Filter.PackagePaths.Add(FName("/Game/Buildings/DataOnMenu"));
+    Filter.PackagePaths.Add(FName("/Game/Buildings"));
     Filter.ClassPaths.Add(FTopLevelAssetPath(UBuildingConfig::StaticClass()));
     Filter.bRecursivePaths = true;
 

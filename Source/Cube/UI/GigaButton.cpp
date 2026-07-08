@@ -9,7 +9,7 @@ void UGigaButton::SetId(int ID){MyId = ID;}
 void UGigaButton::SetButtonImage(UTexture2D* Texture, float SizeX, float SizeY)
 {
     if (!Texture) return;
-    DEBUG_CHECK_RETURN("UGigaButton", MainButton);
+    DEBUG_CHECK_RETURN(UGigaButton, MainButton);
 
     FSlateBrush NormalBrush; 
     NormalBrush.SetResourceObject(Texture);
@@ -41,7 +41,7 @@ void UGigaButton::SetButtonImage(UTexture2D* Texture, float SizeX, float SizeY)
 
 void UGigaButton::NativeConstruct() {
     Super::NativeConstruct();
-    DEBUG_CHECK_RETURN("UGigaButton", MainButton);
+    DEBUG_CHECK_RETURN(UGigaButton, MainButton);
 
     MainButton->OnClicked.Clear();
     MainButton->OnPressed.Clear();

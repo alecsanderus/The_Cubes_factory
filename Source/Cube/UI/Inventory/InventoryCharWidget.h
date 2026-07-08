@@ -19,7 +19,7 @@ protected:
 public:
 	virtual void NativeConstruct() override;
 
-	UFUNCTION(BlueprintCallable)
+	void RefreshInventory(int32 Index);
 	void RefreshInventory();
 
 	UFUNCTION(BlueprintCallable)
